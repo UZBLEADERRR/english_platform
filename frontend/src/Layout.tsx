@@ -18,27 +18,25 @@ export default function Layout() {
   useEffect(() => {
     // Try Telegram WebApp init
     const tg = (window as any).Telegram?.WebApp;
-    if (tg) {
+    const tgUser = tg?.initDataUnsafe?.user;
+    
+    if (tgUser && !user) {
       tg.ready();
       tg.expand();
-      const tgUser = tg.initDataUnsafe?.user;
-      if (tgUser && !user) {
-        api.setTelegramId(tgUser.id.toString());
-        api.loginTelegram({
-          telegram_id: tgUser.id,
-          username: tgUser.username,
-          first_name: tgUser.first_name,
-          last_name: tgUser.last_name,
-          avatar_url: tgUser.photo_url,
-          referral_code: new URLSearchParams(tg.initDataUnsafe?.start_param || '').get('ref'),
-        }).then(({ user: u }) => {
-          api.setUserId(u.id);
-          setUser(u);
-        }).catch(console.error);
-      }
-    }
-    // Dev mode: mock user
-    if (!tg && !user) {
+      api.setTelegramId(tgUser.id.toString());
+      api.loginTelegram({
+        telegram_id: tgUser.id,
+        username: tgUser.username,
+        first_name: tgUser.first_name,
+        last_name: tgUser.last_name,
+        avatar_url: tgUser.photo_url,
+        referral_code: new URLSearchParams(tg.initDataUnsafe?.start_param || '').get('ref'),
+      }).then(({ user: u }) => {
+        api.setUserId(u.id);
+        setUser(u);
+      }).catch(console.error);
+    } else if (!tgUser && !user) {
+      // Dev mode: mock user
       api.setTelegramId('123456789');
       api.loginTelegram({
         telegram_id: 123456789,
@@ -93,13 +91,13 @@ export default function Layout() {
       </nav>
 
       {/* Main Content */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         <motion.main
           key={location.pathname}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.15 }}
           className="flex-1 w-full mx-auto flex flex-col relative max-w-7xl px-4 pt-20 pb-4"
         >
           <Outlet />

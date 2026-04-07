@@ -94,7 +94,7 @@ export default function Home() {
             <button
               key={cat.id}
               onClick={() => handleCategoryClick(cat)}
-              className="relative aspect-[4/3] rounded-2xl overflow-hidden group shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+              className="relative aspect-square rounded-2xl overflow-hidden group shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
             >
               {cat.image_url ? (
                 <img src={cat.image_url} alt={cat.custom_name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
@@ -110,7 +110,7 @@ export default function Home() {
           {/* Custom Cards */}
           <button
             onClick={() => navigate('/reels')}
-            className="relative aspect-[4/3] rounded-2xl overflow-hidden group shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+            className="relative aspect-square rounded-2xl overflow-hidden group shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
           >
             <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=300&h=300&fit=crop" alt="Reels" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
@@ -118,7 +118,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => navigate('/ai-chat')}
-            className="relative aspect-[4/3] rounded-2xl overflow-hidden group shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+            className="relative aspect-square rounded-2xl overflow-hidden group shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
           >
             <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=300&h=300&fit=crop" alt="Virtual Teacher" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />

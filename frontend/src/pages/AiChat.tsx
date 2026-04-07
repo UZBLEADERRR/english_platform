@@ -230,8 +230,24 @@ export default function AiChat() {
               )}
             </div>
             <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
-            <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()}
-              placeholder={t('typeMessage')} className="flex-1 bg-transparent border-none py-2.5 px-1 text-main text-sm placeholder:text-muted focus:outline-none" />
+            <textarea
+              value={input}
+              onChange={e => {
+                setInput(e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              rows={1}
+              placeholder={t('typeMessage')}
+              className="flex-1 bg-transparent border-none py-2.5 px-2 text-main text-sm placeholder:text-muted focus:outline-none resize-none max-h-[120px] scrollbar-none"
+              style={{ minHeight: '40px' }}
+            />
             <button onClick={isLoading ? () => {} : handleSend} disabled={(!input.trim() && !selectedImage) && !isLoading}
               className="p-2 mr-1.5 bg-primary text-white rounded-full disabled:opacity-50 shrink-0">
               {isLoading ? <Square className="w-4 h-4" /> : <Send className="w-4 h-4 ml-0.5" />}
