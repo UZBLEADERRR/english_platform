@@ -17,14 +17,17 @@ export default function Apps() {
     api.getApps().then(setApps).catch(() => {});
     if (user) {
       api.get(`/api/chat/artifacts/${user.id}`).then((msgs: any[]) => {
+
         const artifacts = msgs.map((m, i) => {
           const match = /```html\n([\s\S]*?)```/.exec(m.text) || /```\n([\s\S]*?)```/.exec(m.text);
           const htmlCode = match ? match[1] : '';
+          const titleMatch = /<!--\s*title:\s*(.*?)\s*-->/i.exec(htmlCode) || /<!--\s*title:\s*(.*?)\s*-->/i.exec(m.text);
           return {
             id: m.id,
-            title: `Artifact ${i + 1}`,
+            title: titleMatch ? titleMatch[1] : `Artifact ${i + 1}`,
             app_type: 'code',
-            html_code: htmlCode
+            html_code: htmlCode,
+            msgContext: m.text
           };
         }).filter(a => a.html_code);
         setMyApps(artifacts);
@@ -53,21 +56,44 @@ export default function Apps() {
       {/* Apps Grid */}
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
         {displayList.map(app => (
-          <button key={app.id} onClick={() => {
-            if (app.app_type === 'link' && app.link_url) { window.location.href = app.link_url; }
-            else { setViewingApp(app); }
-          }} className="flex flex-col items-center gap-2 group">
-            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-elevated shadow-md group-hover:shadow-xl group-hover:scale-105 transition-all">
-              {app.icon_url ? (
-                <img src={app.icon_url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white text-xl font-bold">
-                  {app.title?.[0]}
-                </div>
-              )}
-            </div>
-            <span className="text-xs font-medium text-main text-center line-clamp-2">{app.title}</span>
-          </button>
+          <div key={app.id} className="relative group flex flex-col items-center gap-2">
+            <button onClick={() => {
+              if (app.app_type === 'link' && app.link_url) { window.location.href = app.link_url; }
+              else { setViewingApp(app); }
+            }} className="flex flex-col items-center gap-2 outline-none w-full">
+              <div className="w-16 h-16 rounded-2xl overflow-hidden bg-white/5 shadow-md group-hover:shadow-xl group-hover:scale-105 transition-all flex shrink-0 items-center justify-center relative">
+                {app.app_type === 'code' && app.html_code ? (
+                  <div className="w-full h-full pointer-events-none relative scale-[0.2] origin-top-left" style={{ width: '500%', height: '500%' }}>
+                    <iframe srcDoc={app.html_code} className="w-[500%] h-[500%] border-none absolute top-0 left-0" sandbox="allow-scripts"/>
+                  </div>
+                ) : app.icon_url ? (
+                  <img src={app.icon_url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white text-xl font-bold">
+                    {app.title?.[0]}
+                  </div>
+                )}
+              </div>
+              <span className="text-xs font-medium text-main text-center line-clamp-2">{app.title}</span>
+            </button>
+            {activeTab === 'my' && (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const newName = prompt('Yangi nom:', app.title);
+                  if (newName) {
+                    const newText = `<!-- title: ${newName} -->\n` + app.msgContext;
+                    api.put(`/api/chat/messages/${app.id}`, { text: newText }).then(() => {
+                      setMyApps(p => p.map(a => a.id === app.id ? { ...a, title: newName, msgContext: newText } : a));
+                    }).catch(() => {});
+                  }
+                }}
+                className="absolute -top-1 -right-1 p-1.5 bg-surface text-muted hover:text-primary rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              >
+                <code className="text-[10px]">edit</code>
+              </button>
+            )}
+          </div>
         ))}
       </div>
 

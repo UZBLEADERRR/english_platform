@@ -41,12 +41,18 @@ export default function AiChat() {
     }).catch(() => {});
   }, [user]);
 
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: isInitialLoad ? 'auto' : 'smooth' });
+    if (messages.length > 0 && isInitialLoad) {
+      setTimeout(() => setIsInitialLoad(false), 100);
+    }
   }, [messages]);
 
   const loadMessages = (sessionId: string) => {
     setCurrentSessionId(sessionId);
+    setIsInitialLoad(true);
     api.getChatMessages(sessionId).then(setMessages).catch(() => {});
     setIsSidebarOpen(false);
   };
@@ -127,11 +133,30 @@ export default function AiChat() {
         </div>
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
           {sessions.map(s => (
-            <button key={s.id} onClick={() => loadMessages(s.id)}
-              className={cn("w-full flex items-center gap-2 p-2.5 rounded-lg text-left transition-colors text-sm", currentSessionId === s.id ? "bg-primary/10 text-primary" : "text-main hover:bg-surface")}>
-              <MessageSquare className="w-4 h-4 shrink-0" />
-              <span className="truncate">{s.title}</span>
-            </button>
+            <div key={s.id} className={cn("w-full flex items-center justify-between gap-2 p-2.5 rounded-lg transition-colors text-sm group", currentSessionId === s.id ? "bg-primary/10 text-primary" : "hover:bg-surface")}>
+              <button onClick={() => loadMessages(s.id)} className="flex-1 flex items-center gap-2 text-left truncate text-main">
+                <MessageSquare className="w-4 h-4 shrink-0 text-muted" />
+                <span className="truncate">{s.title}</span>
+              </button>
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={() => {
+                  const title = prompt('Yangi nom:', s.title);
+                  if (title) {
+                    api.updateChatSession(s.id, { title }).then(() => setSessions(p => p.map(x => x.id === s.id ? { ...x, title } : x)));
+                  }
+                }} className="p-1.5 text-muted hover:text-blue-500 rounded-md"><Edit2 className="w-3.5 h-3.5" /></button>
+                <button onClick={() => {
+                  if (confirm("O'chirishni xohlaysizmi?")) {
+                    api.deleteChatSession(s.id).then(() => {
+                      setSessions(p => p.filter(x => x.id !== s.id));
+                      if (currentSessionId === s.id) {
+                        setMessages([]); setCurrentSessionId(null);
+                      }
+                    });
+                  }
+                }} className="p-1.5 text-muted hover:text-red-500 rounded-md"><Trash2 className="w-3.5 h-3.5" /></button>
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -154,9 +179,9 @@ export default function AiChat() {
               transition={{ duration: 0.3 }}
               className={cn("flex w-full group", msg.role === 'user' ? "justify-end" : "justify-start")}
             >
-              <div className={cn("p-3 rounded-3xl relative group/msg max-w-[85%] shadow-sm", msg.role === 'user' ? "bg-primary text-white rounded-br-sm" : "bg-elevated border border-theme text-main rounded-bl-sm")}>
+              <div className={cn("p-1 relative max-w-full lg:max-w-4xl mx-auto w-full flex flex-col", msg.role === 'user' ? "items-end" : "items-start")}>
                 {msg.role === 'model' ? (
-                  <div className="prose prose-sm dark:prose-invert max-w-full overflow-x-auto break-words text-sm">
+                  <div className="prose prose-sm dark:prose-invert max-w-full w-full overflow-x-auto break-words text-[15px] leading-relaxed px-2 md:px-8">
                     <Markdown components={{
                       pre({ children }: any) {
                         const codeEl = children?.props;
@@ -164,27 +189,40 @@ export default function AiChat() {
                         const match = /language-(\w+)/.exec(className);
                         const lang = match ? match[1] : 'text';
                         const code = String(codeEl?.children || '').replace(/\n$/, '');
+                        if (lang === 'html') {
+                          return (
+                            <div className="my-4 p-4 bg-surface rounded-2xl border border-theme shadow-sm relative w-full overflow-hidden flex flex-col items-center gap-3">
+                              <div className="w-full text-center text-xs font-semibold text-muted bg-elevated py-1.5 rounded-lg">Artifact</div>
+                              <div className="relative w-full aspect-video scale-[0.4] origin-top max-h-[160px]" style={{ height: '500px' }}>
+                                <iframe srcDoc={code} className="w-[250%] h-[250%] border-none absolute top-0 left-0" sandbox="allow-scripts" />
+                              </div>
+                              <button onClick={() => { setPreviewData({ code, language: lang }); }}
+                                className="px-5 py-2 bg-primary text-white rounded-full text-sm font-semibold flex items-center gap-1.5 shadow-md hover:shadow-lg transition-all absolute bottom-4">
+                                <Maximize2 className="w-4 h-4" /> Kichik darchada ochish
+                              </button>
+                            </div>
+                          );
+                        }
                         return (
-                          <div className="my-2 p-3 bg-elevated rounded-xl border border-theme flex flex-col items-center gap-2 not-prose">
-                            <button onClick={() => { setPreviewData({ code, language: lang }); }}
-                              className="px-4 py-2 bg-primary text-white rounded-full text-sm font-medium flex items-center gap-1">
-                              <Maximize2 className="w-3 h-3" /> {t('view')}
-                            </button>
+                          <div className="my-2 p-3 bg-elevated rounded-xl border border-theme overflow-x-auto">
+                            <pre><code>{code}</code></pre>
+                            <button onClick={() => { setPreviewData({ code, language: lang }); }} className="mt-2 text-xs text-primary flex items-center gap-1 font-semibold"><Maximize2 className="w-3 h-3"/> To'liq ko'rish</button>
                           </div>
                         );
                       }
                     }}>{msg.text}</Markdown>
+                    <div className="flex justify-start mt-2 border-t border-theme pt-2 opacity-60 hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleCopy(msg.text, msg.id)} className="p-1.5 rounded-full hover:bg-elevated text-muted flex items-center gap-1.5 text-xs font-semibold">
+                        {copiedId === msg.id ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />} Nusxa olish
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    {msg.image_url && <img src={msg.image_url} alt="" className="max-w-full rounded-lg max-h-48 object-contain" />}
-                    <p className="whitespace-pre-wrap text-sm">{msg.text}</p>
+                  <div className="space-y-2 bg-zinc-800/80 text-white p-4 rounded-3xl rounded-br-sm shadow-sm max-w-[85%] self-end">
+                    {msg.image_url && <img src={msg.image_url} alt="" className="max-w-full rounded-2xl max-h-56 object-contain" />}
+                    <p className="whitespace-pre-wrap text-[15px] leading-relaxed">{msg.text}</p>
                   </div>
                 )}
-                <button onClick={() => handleCopy(msg.text, msg.id)}
-                  className={cn("absolute -bottom-2.5 p-1 rounded-full bg-surface border border-theme text-muted opacity-0 group-hover/msg:opacity-100 shadow-sm z-10", msg.role === 'user' ? "right-3" : "left-3")}>
-                  {copiedId === msg.id ? <Check className="w-2.5 h-2.5 text-green-500" /> : <Copy className="w-2.5 h-2.5" />}
-                </button>
               </div>
             </motion.div>
           ))}
@@ -214,9 +252,9 @@ export default function AiChat() {
                 <button onClick={() => setIsArtifactMode(false)} className="ml-1 hover:text-red-500 transition-colors"><X className="w-3 h-3" /></button>
               </div>
             )}
-            <div className="relative flex items-center bg-surface border border-theme shadow-lg rounded-2xl focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all p-1">
+            <div className="relative flex items-center bg-surface border border-theme shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[32px] focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all p-1.5 mt-2">
               <div className="relative shrink-0">
-                <button onClick={() => setIsPlusMenuOpen(!isPlusMenuOpen)} className="p-2.5 text-muted hover:text-primary rounded-xl transition-colors">
+                <button onClick={() => setIsPlusMenuOpen(!isPlusMenuOpen)} className="p-3 ml-1 text-muted hover:text-primary rounded-full transition-colors bg-elevated border border-white/5">
                   <Plus className="w-5 h-5" />
                 </button>
                 {isPlusMenuOpen && (
@@ -246,12 +284,12 @@ export default function AiChat() {
                 }}
                 rows={1}
                 placeholder={t('typeMessage')}
-                className="flex-1 bg-transparent border-none py-3 px-2 text-main text-[15px] placeholder:text-muted focus:outline-none resize-none max-h-[120px] scrollbar-none leading-relaxed"
-                style={{ minHeight: '44px' }}
+                className="flex-1 bg-transparent border-none py-3.5 px-3 text-main text-[15px] placeholder:text-muted focus:outline-none resize-none max-h-[120px] scrollbar-none font-medium"
+                style={{ minHeight: '48px' }}
               />
               <button onClick={isLoading ? () => {} : handleSend} disabled={(!input.trim() && !selectedImage) && !isLoading}
-                className="p-3 mr-1 bg-primary text-white rounded-xl shadow-md hover:shadow-lg disabled:opacity-50 disabled:shadow-none transition-all shrink-0">
-                {isLoading ? <Square className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+                className="p-3.5 mr-1 bg-primary text-white rounded-full shadow-lg hover:shadow-primary/50 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:shadow-none transition-all shrink-0">
+                {isLoading ? <Square className="w-5 h-5 fill-current" /> : <Send className="w-5 h-5" />}
               </button>
             </div>
           </div>

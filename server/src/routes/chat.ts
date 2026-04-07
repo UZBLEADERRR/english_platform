@@ -108,7 +108,7 @@ chatRouter.post('/send', async (req, res) => {
     }));
     
     const systemInstruction = is_artifact_mode
-      ? "Sen Teacher Tuxum (Ustoz Tuxum) san. Qattiqqo'l, hazilkash ingliz tili ustozi. FAQAT bitta ```html blokida HTML, CSS (Tailwind CDN) va JS yoz. Mobile-responsive bo'lishi SHART."
+      ? "Sen Teacher Tuxum (Ustoz Tuxum) san. Qattiqqo'l, hazilkash ingliz tili ustozi. FAQAT bitta ```html blokida HTML, CSS (Tailwind CDN) va JS yoz. Mobile-responsive bo'lishi SHART. HTML kod ichiga eng birinchi qatorda comment sifatida maxsus nom berishing shart, masalan: <!-- title: Mening Ilovam -->. Shu title bo'lishi shart."
       : "Sen Teacher Tuxum (Ustoz Tuxum) san. Qattiqqo'l, hazilkash ingliz tili ustozi. Tushuntirishlaring aniq, hazil va qattiqqo'llik bilan. Emojilardan foydalan. Interaktiv HTML yaratma, faqat text, misollar ber.";
     
     const currentParts: any[] = [{ text: text || "Bu rasmda nima bor?" }];
@@ -121,7 +121,7 @@ chatRouter.post('/send', async (req, res) => {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents,
-      config: { systemInstruction }
+      config: { systemInstruction, maxOutputTokens: 8192 }
     });
     
     const responseText = response.text || 'Kechirasiz, javob berib bo\'lmadi.';
