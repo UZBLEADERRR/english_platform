@@ -102,7 +102,7 @@ chatRouter.post('/send', async (req, res) => {
     const contents = [...chatHistory, { role: 'user' as const, parts: currentParts }];
     
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-3-flash-preview',
       contents,
       config: { systemInstruction }
     });
