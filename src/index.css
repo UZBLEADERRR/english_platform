@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-dark-bg: #181818;
+  --color-dark-surface: #212121;
+  --color-dark-elevated: #303030;
+  
+  --color-light-bg: #f8fafc;
+  --color-light-surface: #ffffff;
+  --color-light-elevated: #f1f5f9;
+
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+}
+
+@layer base {
+  :root {
+    --bg: var(--color-light-bg);
+    --surface: var(--color-light-surface);
+    --elevated: var(--color-light-elevated);
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+  }
+
+  .dark {
+    --bg: var(--color-dark-bg);
+    --surface: var(--color-dark-surface);
+    --elevated: var(--color-dark-elevated);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: #3f3f46;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+@layer utilities {
+  .bg-theme {
+    background-color: var(--bg);
+  }
+  .bg-surface {
+    background-color: var(--surface);
+  }
+  .bg-elevated {
+    background-color: var(--elevated);
+  }
+  .text-main {
+    color: var(--text-main);
+  }
+  .text-muted {
+    color: var(--text-muted);
+  }
+  .border-theme {
+    border-color: var(--border);
+  }
+  
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}

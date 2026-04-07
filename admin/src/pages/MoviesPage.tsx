@@ -1,0 +1,71 @@
+import React, { useState, useEffect } from 'react';
+import adminApi from '../api';
+import { Plus, Trash2, Lock, Unlock, Edit2 } from 'lucide-react';
+
+export default function MoviesPage() {
+  const [movies, setMovies] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [showCatForm, setShowCatForm] = useState(false);
+  const [catName, setCatName] = useState('');
+  const [form, setForm] = useState({ title: '', description: '', poster_url: '', video_url: '', category_id: '', is_18plus: false, is_locked: false });
+  const load = () => { adminApi.getMovies().then(setMovies).catch(() => {}); adminApi.getMovieCategories().then(setCategories).catch(() => {}); };
+  useEffect(() => { load(); }, []);
+
+  const addMovie = async () => { await adminApi.addMovie(form); setShowForm(false); setForm({ title: '', description: '', poster_url: '', video_url: '', category_id: '', is_18plus: false, is_locked: false }); load(); };
+  const deleteMovie = async (id: string) => { if(!confirm('O\'chirish?')) return; await adminApi.deleteMovie(id); load(); };
+  const toggleLock = async (m: any) => { await adminApi.updateMovie(m.id, { is_locked: !m.is_locked }); load(); };
+  const addCategory = async () => { if(!catName) return; await adminApi.addMovieCategory({ name: catName }); setCatName(''); setShowCatForm(false); load(); };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h1 className="text-xl font-bold text-white">Kinolar</h1>
+        <div className="flex gap-2">
+          <button onClick={() => setShowCatForm(!showCatForm)} className="btn-secondary text-xs">+ Kategoriya</button>
+          <button onClick={() => setShowForm(!showForm)} className="btn-primary text-xs flex items-center gap-1"><Plus className="w-3 h-3" /> Kino</button>
+        </div>
+      </div>
+      {showCatForm && (
+        <div className="card flex gap-2">
+          <input value={catName} onChange={e => setCatName(e.target.value)} placeholder="Kategoriya nomi" className="input flex-1" />
+          <button onClick={addCategory} className="btn-primary text-xs">Saqlash</button>
+        </div>
+      )}
+      {showForm && (
+        <div className="card space-y-3">
+          <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="Nomi" className="input" />
+          <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Tavsif" className="input min-h-[60px]" />
+          <input value={form.poster_url} onChange={e => setForm({...form, poster_url: e.target.value})} placeholder="Poster URL" className="input" />
+          <input value={form.video_url} onChange={e => setForm({...form, video_url: e.target.value})} placeholder="Video URL (bunny.net)" className="input" />
+          <select value={form.category_id} onChange={e => setForm({...form, category_id: e.target.value})} className="input">
+            <option value="">Kategoriya tanlang</option>
+            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" checked={form.is_18plus} onChange={e => setForm({...form, is_18plus: e.target.checked})} /> 18+</label>
+            <label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" checked={form.is_locked} onChange={e => setForm({...form, is_locked: e.target.checked})} /> Qulflangan</label>
+          </div>
+          <div className="flex gap-2"><button onClick={addMovie} className="btn-primary text-xs">Saqlash</button><button onClick={() => setShowForm(false)} className="btn-secondary text-xs">Bekor</button></div>
+        </div>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {movies.map(m => (
+          <div key={m.id} className="card space-y-2">
+            {m.poster_url && <img src={m.poster_url} alt="" className="w-full h-40 rounded-xl object-cover" />}
+            <h3 className="text-white font-bold text-sm">{m.title}</h3>
+            <p className="text-slate-400 text-xs line-clamp-2">{m.description}</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              {m.is_18plus && <span className="px-2 py-0.5 bg-red-500/10 text-red-400 rounded text-xs">18+</span>}
+              <span className={`px-2 py-0.5 rounded text-xs ${m.is_locked ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'}`}>{m.is_locked ? 'Qulflangan' : 'Ochiq'}</span>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button onClick={() => toggleLock(m)} className="btn-secondary text-xs flex items-center gap-1">{m.is_locked ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}</button>
+              <button onClick={() => deleteMovie(m.id)} className="btn-danger text-xs flex items-center gap-1"><Trash2 className="w-3 h-3" /></button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
