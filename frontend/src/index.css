@@ -6,9 +6,9 @@
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --color-dark-bg: #0a0a0f;
-  --color-dark-surface: #14141f;
-  --color-dark-elevated: #1e1e2e;
+  --color-dark-bg: #181818;
+  --color-dark-surface: #212121;
+  --color-dark-elevated: #303030;
   --color-light-bg: #f4f6fb;
   --color-light-surface: #ffffff;
   --color-light-elevated: #eef1f8;
@@ -31,7 +31,7 @@
     --elevated: var(--color-dark-elevated);
     --text-main: #f1f5f9;
     --text-muted: #94a3b8;
-    --border: #2a2a3e;
+    --border: #303030;
   }
   body {
     background-color: var(--bg);

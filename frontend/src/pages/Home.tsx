@@ -89,7 +89,7 @@ export default function Home() {
       {/* Category Cards */}
       <div>
         <h3 className="text-lg font-bold mb-3 text-main">{t('categories')}</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {categories.map((cat) => (
             <button
               key={cat.id}
@@ -107,6 +107,23 @@ export default function Home() {
               </span>
             </button>
           ))}
+          {/* Custom Cards */}
+          <button
+            onClick={() => navigate('/reels')}
+            className="relative aspect-[4/3] rounded-2xl overflow-hidden group shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+          >
+            <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=300&h=300&fit=crop" alt="Reels" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+            <span className="absolute bottom-3 left-3 text-white font-bold text-sm md:text-base drop-shadow-lg">Reels</span>
+          </button>
+          <button
+            onClick={() => navigate('/ai-chat')}
+            className="relative aspect-[4/3] rounded-2xl overflow-hidden group shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+          >
+            <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=300&h=300&fit=crop" alt="Virtual Teacher" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+            <span className="absolute bottom-3 left-3 text-white font-bold text-sm md:text-base drop-shadow-lg">Virtual Teacher</span>
+          </button>
         </div>
       </div>
     </div>

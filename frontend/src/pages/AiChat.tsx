@@ -6,6 +6,7 @@ import { Menu, Plus, Send, Square, X, MessageSquare, Trash2, Edit2, Bot, Code, P
 import Markdown from 'react-markdown';
 import { cn } from '../Layout';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function AiChat() {
   const t = useTranslation();
@@ -107,7 +108,7 @@ export default function AiChat() {
   };
 
   return (
-    <div className="flex h-full relative overflow-hidden bg-surface">
+    <div className="flex h-[calc(100vh-7rem)] -mx-4 sm:mx-0 sm:rounded-3xl relative overflow-hidden bg-surface shadow-2xl">
       {/* Sidebar Overlay */}
       {isSidebarOpen && <div className="absolute inset-0 bg-black/50 z-20 md:hidden" onClick={() => setIsSidebarOpen(false)} />}
 
@@ -143,10 +144,17 @@ export default function AiChat() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-4">
+        <div className="flex-1 overflow-y-auto p-3 space-y-4 pb-20">
+          <AnimatePresence initial={false}>
           {messages.map((msg) => (
-            <div key={msg.id} className={cn("flex w-full group", msg.role === 'user' ? "justify-end" : "justify-start")}>
-              <div className={cn("p-3 rounded-2xl relative group/msg max-w-[85%]", msg.role === 'user' ? "bg-elevated text-main border border-theme rounded-br-sm" : "bg-surface border border-theme text-main")}>
+            <motion.div
+              key={msg.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className={cn("flex w-full group", msg.role === 'user' ? "justify-end" : "justify-start")}
+            >
+              <div className={cn("p-3 rounded-3xl relative group/msg max-w-[85%] shadow-sm", msg.role === 'user' ? "bg-primary text-white rounded-br-sm" : "bg-elevated border border-theme text-main rounded-bl-sm")}>
                 {msg.role === 'model' ? (
                   <div className="prose prose-sm dark:prose-invert max-w-full overflow-x-auto break-words text-sm">
                     <Markdown components={{
@@ -178,8 +186,9 @@ export default function AiChat() {
                   {copiedId === msg.id ? <Check className="w-2.5 h-2.5 text-green-500" /> : <Copy className="w-2.5 h-2.5" />}
                 </button>
               </div>
-            </div>
+            </motion.div>
           ))}
+          </AnimatePresence>
           {isLoading && (
             <div className="flex justify-start"><div className="p-3 rounded-2xl bg-surface border border-theme flex items-center gap-1.5">
               <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -191,7 +200,7 @@ export default function AiChat() {
         </div>
 
         {/* Input */}
-        <div className="p-3 bg-surface border-t border-theme shrink-0">
+        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-bg to-transparent shrink-0">
           {selectedImage && (
             <div className="mb-2 relative inline-block">
               <img src={selectedImage.url} alt="" className="h-16 rounded-lg border border-theme" />

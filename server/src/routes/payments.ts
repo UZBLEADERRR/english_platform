@@ -57,20 +57,24 @@ paymentsRouter.post('/admin/approve/:id', adminAuth, async (req, res) => {
   if (!payment) return res.status(404).json({ error: 'Not found' });
   
   // Update payment status
-  await supabase.from('payments').update({ 
+  const { error: updateError } = await supabase.from('payments').update({ 
     status: 'approved', 
     processed_at: new Date().toISOString(),
-    admin_note: req.body.note 
+    admin_note: req.body.note || null
   }).eq('id', req.params.id);
+  
+  if (updateError) return res.status(500).json({ error: updateError.message });
   
   // Update user subscription
   const expiresAt = new Date();
   expiresAt.setMonth(expiresAt.getMonth() + 1); // 1 month
   
-  await supabase.from('users').update({ 
+  const { error: userError } = await supabase.from('users').update({ 
     subscription: payment.plan,
     subscription_expires_at: expiresAt.toISOString()
   }).eq('id', payment.user_id);
+  
+  if (userError) return res.status(500).json({ error: userError.message });
   
   // Track referral payment
   const { data: user } = await supabase.from('users').select('referred_by').eq('id', payment.user_id).single();
@@ -87,11 +91,13 @@ paymentsRouter.post('/admin/approve/:id', adminAuth, async (req, res) => {
 
 // Admin: Reject payment
 paymentsRouter.post('/admin/reject/:id', adminAuth, async (req, res) => {
-  await supabase.from('payments').update({ 
+  const { error } = await supabase.from('payments').update({ 
     status: 'rejected', 
     processed_at: new Date().toISOString(),
-    admin_note: req.body.note 
+    admin_note: req.body.note || null
   }).eq('id', req.params.id);
+  
+  if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true });
 });
 

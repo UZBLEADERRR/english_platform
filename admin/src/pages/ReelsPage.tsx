@@ -12,7 +12,7 @@ export default function ReelsPage() {
   useEffect(() => { load(); }, []);
 
   const addCategory = async () => { if(!catName) return; await adminApi.addReelCategory({ name: catName }); setCatName(''); setShowCatForm(false); load(); };
-  const addWord = async (catId: string) => { await adminApi.addReelWord({ ...wordForm, category_id: catId }); setWordForm({ category_id: '', image_url: '', word: '' }); setShowWordForm(''); load(); };
+  const addWord = async (catId: string) => { try { await adminApi.addReelWord({ ...wordForm, category_id: catId }); setWordForm({ category_id: '', image_url: '', word: '' }); setShowWordForm(''); load(); } catch(e:any) { alert(e.message); } };
 
   return (
     <div className="space-y-4">
@@ -45,7 +45,7 @@ export default function ReelsPage() {
           <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
             {cat.reel_words?.map((w: any) => (
               <div key={w.id} className="relative group">
-                <img src={w.image_url} alt={w.word} className="w-full aspect-square rounded-lg object-cover" />
+                <img src={w.image_url} alt={w.word} className="w-full aspect-square rounded-lg object-cover" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/150')} />
                 <p className="text-xs text-slate-300 text-center mt-1 truncate">{w.word}</p>
                 <button onClick={() => adminApi.deleteReelWord(w.id).then(load)} className="absolute top-1 right-1 p-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                   <Trash2 className="w-3 h-3 text-white" />

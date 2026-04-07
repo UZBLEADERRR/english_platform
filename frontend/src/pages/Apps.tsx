@@ -3,21 +3,36 @@ import { useTranslation } from '../i18n';
 import api from '../api';
 import { X } from 'lucide-react';
 import { cn } from '../Layout';
+import { useAppStore } from '../store';
 
 export default function Apps() {
   const t = useTranslation();
   const [apps, setApps] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'required' | 'my'>('required');
+  const [myApps, setMyApps] = useState<any[]>([]);
   const [viewingApp, setViewingApp] = useState<any>(null);
+  const { user } = useAppStore();
 
   useEffect(() => {
-    api.getApps().then(setApps).catch(() => {
-      setApps(Array.from({ length: 4 }, (_, i) => ({
-        id: `a${i}`, title: `App ${i + 1}`, icon_url: `https://picsum.photos/seed/app${i}/200/200`,
-        app_type: 'code', html_code: `<html><body style="font-family:sans-serif;padding:20px;background:#1a1a2e;color:white;min-height:100vh;"><h1>App ${i + 1}</h1><p>Interactive English learning app</p></body></html>`,
-      })));
-    });
-  }, []);
+    api.getApps().then(setApps).catch(() => {});
+    if (user) {
+      api.get(`/api/chat/artifacts/${user.id}`).then((msgs: any[]) => {
+        const artifacts = msgs.map((m, i) => {
+          const match = /```html\n([\s\S]*?)```/.exec(m.text) || /```\n([\s\S]*?)```/.exec(m.text);
+          const htmlCode = match ? match[1] : '';
+          return {
+            id: m.id,
+            title: `Artifact ${i + 1}`,
+            app_type: 'code',
+            html_code: htmlCode
+          };
+        }).filter(a => a.html_code);
+        setMyApps(artifacts);
+      }).catch(() => {});
+    }
+  }, [user]);
+
+  const displayList = activeTab === 'required' ? apps : myApps;
 
   return (
     <div className="space-y-5 animate-in fade-in duration-500">
@@ -37,7 +52,7 @@ export default function Apps() {
 
       {/* Apps Grid */}
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
-        {apps.map(app => (
+        {displayList.map(app => (
           <button key={app.id} onClick={() => {
             if (app.app_type === 'link' && app.link_url) { window.location.href = app.link_url; }
             else { setViewingApp(app); }
@@ -56,7 +71,7 @@ export default function Apps() {
         ))}
       </div>
 
-      {apps.length === 0 && (
+      {displayList.length === 0 && (
         <div className="text-center py-12">
           <span className="text-4xl">📦</span>
           <p className="text-muted mt-2">{t('noArtifacts')}</p>

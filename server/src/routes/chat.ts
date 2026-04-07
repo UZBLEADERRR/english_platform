@@ -26,6 +26,23 @@ chatRouter.get('/messages/:sessionId', async (req, res) => {
   res.json(data || []);
 });
 
+// Get user artifacts (AI generated HTML apps)
+chatRouter.get('/artifacts/:userId', async (req, res) => {
+  const { data: sessions } = await supabase.from('chat_sessions').select('id').eq('user_id', req.params.userId);
+  if (!sessions || !sessions.length) return res.json([]);
+  
+  const sessionIds = sessions.map((s: any) => s.id);
+  const { data: messages } = await supabase
+    .from('chat_messages')
+    .select('*')
+    .eq('role', 'model')
+    .like('text', '%```html%')
+    .in('session_id', sessionIds)
+    .order('created_at', { ascending: false });
+    
+  res.json(messages || []);
+});
+
 // Create new session
 chatRouter.post('/sessions', async (req, res) => {
   const { user_id } = req.body;

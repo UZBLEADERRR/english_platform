@@ -86,7 +86,7 @@ export default function Reels() {
           <motion.div key={currentIndex}
             initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -50 }}
             transition={{ duration: 0.3 }} className="absolute inset-0 w-full h-full">
-            <img src={currentWord.image_url} alt="" className="absolute inset-0 w-full h-full object-cover" referrerPolicy="no-referrer" />
+            <img src={currentWord.image_url} alt="" className="absolute inset-0 w-full h-full object-cover" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80')} />
             <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80" />
             {currentWord.word && (
               <div className="absolute bottom-0 left-0 right-16 p-4 pb-20">

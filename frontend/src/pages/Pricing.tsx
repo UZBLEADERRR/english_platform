@@ -49,7 +49,7 @@ export default function Pricing() {
         amount: selectedPlan === 'premium' ? 29000 : 49000,
       });
       setSubmitted(true);
-    } catch {} finally { setSubmitting(false); }
+    } catch (e: any) { alert(e.message || 'Xatolik yuz berdi'); } finally { setSubmitting(false); }
   };
 
   if (submitted) {

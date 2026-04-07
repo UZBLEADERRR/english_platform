@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from './i18n';
 import { useAppStore } from './store';
 import { Home, Box, Film as Video, Bot, User } from 'lucide-react';
@@ -69,8 +70,8 @@ export default function Layout() {
   return (
     <div className="flex flex-col min-h-[100dvh]">
       {/* Top Navbar */}
-      <nav className="fixed top-2 left-4 right-4 z-[100] bg-surface/90 backdrop-blur-xl border border-theme rounded-3xl drop-shadow-xl">
-        <div className="max-w-lg mx-auto flex items-center justify-around h-16">
+      <nav className="fixed top-2 left-4 right-4 z-[100] bg-surface/90 backdrop-blur-xl border border-theme rounded-full drop-shadow-xl">
+        <div className="max-w-lg mx-auto flex items-center justify-around h-12">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
@@ -79,17 +80,12 @@ export default function Layout() {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex flex-col items-center gap-1 px-2 py-1 rounded-2xl transition-all duration-300 min-w-[56px]",
-                  isActive ? "text-primary" : "text-muted hover:text-main"
+                  "flex items-center justify-center p-2 rounded-full transition-all duration-300",
+                  isActive ? "text-primary bg-primary/10" : "text-muted hover:text-main hover:bg-surface"
                 )}
+                title={item.label}
               >
-                <div className={cn(
-                  "p-1.5 rounded-xl transition-all",
-                  isActive && "bg-primary/10"
-                )}>
-                  <Icon className="w-5 h-5" />
-                </div>
-                <span className="text-[10px] font-medium">{item.label}</span>
+                <Icon className="w-5 h-5" />
               </Link>
             );
           })}
@@ -97,9 +93,18 @@ export default function Layout() {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1 w-full mx-auto flex flex-col relative max-w-7xl px-4 pt-24 pb-8">
-        <Outlet />
-      </main>
+      <AnimatePresence mode="wait">
+        <motion.main
+          key={location.pathname}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+          className="flex-1 w-full mx-auto flex flex-col relative max-w-7xl px-4 pt-20 pb-4"
+        >
+          <Outlet />
+        </motion.main>
+      </AnimatePresence>
     </div>
   );
 }

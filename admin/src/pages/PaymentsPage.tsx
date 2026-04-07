@@ -16,8 +16,8 @@ export default function PaymentsPage() {
   };
   useEffect(() => { loadPayments(); }, [tab]);
 
-  const approve = async (id: string) => { await adminApi.approvePayment(id); loadPayments(); };
-  const reject = async (id: string) => { if(confirm('Rad etish?')) { await adminApi.rejectPayment(id); loadPayments(); } };
+  const approve = async (id: string) => { try { await adminApi.approvePayment(id); loadPayments(); } catch(e:any) { alert(e.message); } };
+  const reject = async (id: string) => { if(confirm('Rad etish?')) { try{ await adminApi.rejectPayment(id); loadPayments(); }catch(e:any){ alert(e.message); } } };
   const addCard = async () => { await adminApi.addPaymentCard(cardForm); setShowCardForm(false); setCardForm({ card_number: '', card_holder: '', bank_name: '' }); loadPayments(); };
 
   return (
