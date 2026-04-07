@@ -77,7 +77,7 @@ async function handleBuyFlow(ctx: any, plan: string, price: string) {
 
   await ctx.answerCallbackQuery();
   await ctx.reply(
-    `💰 *${plan.toUpperCase()} - ${price} so'm/oy*\n\nQuyidagi kartaga to'lovni amalga oshiring:\n\n${cardText}\n\n✅ To'lov qilganingizdan so'ng, *screenshot* yuboring shu chatga.\n\nYoki ilovadan to'lov qiling: ${WEBAPP_URL}/pricing`,
+    `💰 *${plan.toUpperCase()} - ${price} so'm/oy*\n\nQuyidagi kartaga to'lovni amalga oshiring:\n\n${cardText}\n\n✅ To'lov qilganingizdan so'ng, *screenshot* yuboring shu chatga.\n\nYoki ilovadan to'lov qiling: ${WEBAPP_URL}/pricing?tg_id=${ctx.from?.id}&first_name=${encodeURIComponent(ctx.from?.first_name || '')}`,
     { parse_mode: 'Markdown' }
   );
   

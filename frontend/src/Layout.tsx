@@ -18,7 +18,19 @@ export default function Layout() {
   useEffect(() => {
     // Try Telegram WebApp init
     const tg = (window as any).Telegram?.WebApp;
-    const tgUser = tg?.initDataUnsafe?.user;
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceTgId = urlParams.get('tg_id');
+    
+    let tgUser = tg?.initDataUnsafe?.user;
+    if (forceTgId) {
+      tgUser = { 
+        id: parseInt(forceTgId), 
+        username: urlParams.get('username') || '',
+        first_name: urlParams.get('first_name') || 'External User',
+        last_name: '',
+        photo_url: ''
+      };
+    }
     
     if (tgUser && !user) {
       tg.ready();
