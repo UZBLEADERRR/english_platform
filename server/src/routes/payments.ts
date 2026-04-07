@@ -75,9 +75,6 @@ paymentsRouter.post('/admin/approve/:id', adminAuth, async (req, res) => {
   // Track referral payment
   const { data: user } = await supabase.from('users').select('referred_by').eq('id', payment.user_id).single();
   if (user?.referred_by) {
-    await supabase.from('referral_links')
-      .update({ payments: supabase.rpc ? undefined : 0 })
-      .eq('code', user.referred_by);
     // Increment payments count
     const { data: refLink } = await supabase.from('referral_links').select('payments').eq('code', user.referred_by).single();
     if (refLink) {
