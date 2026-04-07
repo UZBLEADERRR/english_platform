@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from './i18n';
 import { useAppStore } from './store';
 import { Home, Box, Film as Video, Bot, User } from 'lucide-react';
@@ -77,10 +76,13 @@ export default function Layout() {
     { path: '/profile', label: t('profile'), icon: User },
   ];
 
+  const isFullScreenApp = location.pathname.startsWith('/ai-chat');
+
   return (
     <div className="flex flex-col min-h-[100dvh]">
       {/* Top Navbar */}
-      <nav className="fixed top-2 left-4 right-4 z-[100] bg-surface/90 backdrop-blur-xl border border-theme rounded-full drop-shadow-xl">
+      {!isFullScreenApp && (
+        <nav className="fixed top-2 left-4 right-4 z-[100] bg-surface/90 backdrop-blur-xl border border-theme rounded-full drop-shadow-xl">
         <div className="max-w-lg mx-auto flex items-center justify-around h-12">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -100,21 +102,16 @@ export default function Layout() {
             );
           })}
         </div>
-      </nav>
+        </nav>
+      )}
 
       {/* Main Content */}
-      <AnimatePresence>
-        <motion.main
-          key={location.pathname}
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.98 }}
-          transition={{ duration: 0.15 }}
-          className="flex-1 w-full mx-auto flex flex-col relative max-w-7xl px-4 pt-20 pb-4"
-        >
-          <Outlet />
-        </motion.main>
-      </AnimatePresence>
+      <main className={cn(
+        "flex-1 w-full mx-auto flex flex-col relative max-w-7xl pb-4 animate-in fade-in duration-300",
+        isFullScreenApp ? "px-0 pt-0 h-[100dvh]" : "px-4 pt-20"
+      )}>
+        <Outlet />
+      </main>
     </div>
   );
 }
