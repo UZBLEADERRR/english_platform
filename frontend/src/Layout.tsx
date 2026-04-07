@@ -5,7 +5,6 @@ import { useAppStore } from './store';
 import { Home, Box, Film as Video, Bot, User } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { AnimatePresence, motion } from 'framer-motion';
 import api from './api';
 
 export function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
@@ -107,18 +106,9 @@ export default function Layout() {
       </nav>
 
       {/* Main Content */}
-      <AnimatePresence mode="popLayout">
-        <motion.main
-          key={location.pathname}
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -15 }}
-          transition={{ duration: 0.5, ease: 'easeOut', delay: 0.1 }}
-          className="flex-1 w-full mx-auto flex flex-col relative max-w-7xl px-4 pt-20 pb-4"
-        >
-          <Outlet />
-        </motion.main>
-      </AnimatePresence>
+      <main className="flex-1 w-full mx-auto flex flex-col relative max-w-7xl px-4 pt-20 pb-4 animate-in fade-in duration-500">
+        <Outlet />
+      </main>
     </div>
   );
 }

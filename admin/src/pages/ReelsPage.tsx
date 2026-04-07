@@ -6,13 +6,24 @@ export default function ReelsPage() {
   const [data, setData] = useState<any[]>([]);
   const [showCatForm, setShowCatForm] = useState(false);
   const [catName, setCatName] = useState('');
-  const [wordForm, setWordForm] = useState({ category_id: '', image_url: '', word: '' });
+  const [wordForm, setWordForm] = useState({ category_id: '', words_string: '' });
   const [showWordForm, setShowWordForm] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
   const load = () => adminApi.getReels().then(setData).catch(() => {});
   useEffect(() => { load(); }, []);
 
   const addCategory = async () => { if(!catName) return; await adminApi.addReelCategory({ name: catName }); setCatName(''); setShowCatForm(false); load(); };
-  const addWord = async (catId: string) => { try { await adminApi.addReelWord({ ...wordForm, category_id: catId }); setWordForm({ category_id: '', image_url: '', word: '' }); setShowWordForm(''); load(); } catch(e:any) { alert(e.message); } };
+  const generateWords = async (catId: string) => { 
+    if(!wordForm.words_string) return;
+    setIsGenerating(true);
+    try { 
+      await adminApi.generateReelWords({ category_id: catId, words_string: wordForm.words_string }); 
+      setWordForm({ category_id: '', words_string: '' }); 
+      setShowWordForm(''); 
+      load(); 
+    } catch(e:any) { alert(e.message); }
+    setIsGenerating(false);
+  };
 
   return (
     <div className="space-y-4">
@@ -36,22 +47,26 @@ export default function ReelsPage() {
             </div>
           </div>
           {showWordForm === cat.id && (
-            <div className="flex gap-2">
-              <input value={wordForm.image_url} onChange={e => setWordForm({...wordForm, image_url: e.target.value})} placeholder="Rasm URL" className="input flex-1" />
-              <input value={wordForm.word} onChange={e => setWordForm({...wordForm, word: e.target.value})} placeholder="So'z" className="input w-32" />
-              <button onClick={() => addWord(cat.id)} className="btn-primary text-xs">+</button>
+            <div className="flex gap-2 flex-col">
+              <textarea value={wordForm.words_string} onChange={e => setWordForm({...wordForm, words_string: e.target.value})} placeholder="So'zlarni vergul bilan kiriting: masalan: apple, logic, sun" className="input flex-1 min-h-[80px]" disabled={isGenerating} />
+              <button onClick={() => generateWords(cat.id)} className="btn-primary text-xs w-full disabled:opacity-50" disabled={isGenerating}>
+                {isGenerating ? 'AI Avtomatik Yaratmoqda, Kuting...' : 'AI Orqali Generate Qilish'}
+              </button>
             </div>
           )}
-          <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
-            {cat.reel_words?.map((w: any) => (
-              <div key={w.id} className="relative group">
-                <img src={w.image_url} alt={w.word} className="w-full aspect-square rounded-lg object-cover" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/150')} />
-                <p className="text-xs text-slate-300 text-center mt-1 truncate">{w.word}</p>
-                <button onClick={() => adminApi.deleteReelWord(w.id).then(load)} className="absolute top-1 right-1 p-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Trash2 className="w-3 h-3 text-white" />
-                </button>
-              </div>
-            ))}
+          <div className="grid grid-cols-4 md:grid-cols-6 gap-3">
+            {cat.reel_words?.map((w: any) => {
+              const wordDisplay = w.word.split('||')[0];
+              return (
+                <div key={w.id} className="relative group">
+                  <img src={w.image_url} alt={wordDisplay} className="w-full aspect-[9/16] rounded-lg object-cover" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/150')} />
+                  <p className="text-xs text-slate-300 text-center mt-1 truncate">{wordDisplay}</p>
+                  <button onClick={() => adminApi.deleteReelWord(w.id).then(load)} className="absolute top-1 right-1 p-1.5 bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Trash2 className="w-3 h-3 text-white" />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       ))}

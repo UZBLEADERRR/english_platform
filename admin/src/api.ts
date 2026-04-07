@@ -76,7 +76,8 @@ class AdminApi {
   getReels() { return this.get('/api/reels/admin/all'); }
   addReelCategory(d: any) { return this.post('/api/reels/categories', d); }
   deleteReelCategory(id: string) { return this.del(`/api/reels/categories/${id}`); }
-  addReelWord(d: any) { return this.post('/api/reels/words', d); }
+  addReelWord(data: any) { return this.post('/api/reels/words', data); }
+  generateReelWords(data: { category_id: string, words_string: string }) { return this.post('/api/reels/generate-words', data); }
   deleteReelWord(id: string) { return this.del(`/api/reels/words/${id}`); }
   
   // Users

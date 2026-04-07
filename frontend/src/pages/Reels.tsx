@@ -3,7 +3,7 @@ import { useTranslation } from '../i18n';
 import { useAppStore } from '../store';
 import api from '../api';
 import { Heart, X, Undo2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Reels() {
   const t = useTranslation();
@@ -81,10 +81,29 @@ export default function Reels() {
               initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -50 }}
               transition={{ duration: 0.3 }} className="absolute inset-0 w-full h-full">
               <img src={words[currentIndex]?.image_url} alt="" className="absolute inset-0 w-full h-full object-cover" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80')} />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80" />
-              {words[currentIndex]?.word && (
-                <div className="absolute bottom-0 left-0 right-16 p-4 pb-20">
-                  <h2 className="text-3xl font-extrabold text-white drop-shadow-lg">{words[currentIndex]?.word}</h2>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/60" />
+              
+              {words[currentIndex]?.word && (() => {
+                const parts = words[currentIndex].word.split('||');
+                const mainWord = parts[0] || '';
+                const translation = parts[1] || '';
+                const example = parts[2] || '';
+                return (
+                  <div className="absolute top-20 left-4 right-4 flex flex-col items-center text-center">
+                    <div className="px-6 py-4 bg-black/30 backdrop-blur-md rounded-3xl border border-white/20 shadow-xl w-full">
+                      <h2 className="text-4xl font-extrabold text-white drop-shadow-lg mb-2">{mainWord}</h2>
+                      {translation && <p className="text-xl font-medium text-green-400 mb-3">{translation}</p>}
+                      {example && <p className="text-[15px] font-medium text-white/90 italic leading-relaxed">"{example}"</p>}
+                    </div>
+                  </div>
+                );
+              })()}
+              
+              {selectedCat && categories.find(c => c.id === selectedCat) && (
+                <div className="absolute bottom-6 left-0 w-full text-center pointer-events-none">
+                  <span className="text-xs font-semibold px-3 py-1 bg-black/50 text-white/70 rounded-full select-none">
+                    {categories.find(c => c.id === selectedCat)?.name}
+                  </span>
                 </div>
               )}
             </motion.div>

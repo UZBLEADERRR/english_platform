@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import { supabase } from '../supabase.js';
 import { adminAuth } from '../middleware.js';
+import { GoogleGenAI } from '@google/genai';
 
 export const reelsRouter = Router();
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 // Get all reel categories with words
 reelsRouter.get('/categories', async (_, res) => {
@@ -99,4 +102,50 @@ reelsRouter.post('/words', adminAuth, async (req, res) => {
 reelsRouter.delete('/words/:id', adminAuth, async (req, res) => {
   await supabase.from('reel_words').delete().eq('id', req.params.id);
   res.json({ success: true });
+});
+
+reelsRouter.post('/generate-words', adminAuth, async (req, res) => {
+  const { category_id, words_string } = req.body;
+  if (!category_id || !words_string) return res.status(400).json({ error: 'Missing field' });
+
+  const wordsList = words_string.split(',').map((w: string) => w.trim()).filter(Boolean);
+  const results = [];
+
+  for (const word of wordsList) {
+    try {
+      const prompt = `Translate the English word "${word}" to Uzbek (just the short translation). Then write a simple short English sentence using "${word}". Output strictly as JSON: {"translation": "...", "example": "..."}`;
+      
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: prompt,
+        config: { systemInstruction: "Output JSON only.", maxOutputTokens: 256 }
+      });
+
+      const text = response.text || '';
+      const match = text.match(/\{[\s\S]*\}/);
+      if (!match) continue;
+      
+      const parsed = JSON.parse(match[0]);
+      const translation = parsed.translation || word;
+      const example = parsed.example || word;
+
+      const imagePrompt = `A creative, highly detailed mobile wallpaper illustration depicting the concept of: ${example}. Cinematic lighting, vibrant colors.`;
+      const encodedPrompt = encodeURIComponent(imagePrompt);
+      const image_url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=720&height=1280&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+
+      const combinedWord = `${word}||${translation}||${example}`;
+      
+      const { data } = await supabase.from('reel_words').insert({
+        category_id,
+        word: combinedWord,
+        image_url
+      }).select().single();
+      
+      if (data) results.push(data);
+    } catch (e) {
+      console.error('Error generating word', word, e);
+    }
+  }
+
+  res.json({ success: true, generated: results });
 });
