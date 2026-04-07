@@ -159,7 +159,8 @@ bot.callbackQuery(/^approve_(.+)$/, async (ctx) => {
   }
 
   await ctx.answerCallbackQuery('✅ Tasdiqlandi');
-  await ctx.editMessageCaption({ caption: ctx.message?.caption + '\n\n✅ TASDIQLANGAN', parse_mode: 'Markdown' });
+  const oldCaption = (ctx.callbackQuery?.message as any)?.caption || "To'lov so'rovi";
+  await ctx.editMessageCaption({ caption: oldCaption + '\n\n✅ TASDIQLANGAN', parse_mode: 'Markdown' });
 });
 
 bot.callbackQuery(/^reject_(.+)$/, async (ctx) => {
@@ -174,7 +175,8 @@ bot.callbackQuery(/^reject_(.+)$/, async (ctx) => {
   }
 
   await ctx.answerCallbackQuery('❌ Rad etildi');
-  await ctx.editMessageCaption({ caption: ctx.message?.caption + '\n\n❌ RAD ETILGAN', parse_mode: 'Markdown' });
+  const oldCaption = (ctx.callbackQuery?.message as any)?.caption || "To'lov so'rovi";
+  await ctx.editMessageCaption({ caption: oldCaption + '\n\n❌ RAD ETILGAN', parse_mode: 'Markdown' });
 });
 
 // /premium command
