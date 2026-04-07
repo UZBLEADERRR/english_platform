@@ -31,7 +31,21 @@ export default function MovieDetail() {
       <div className="max-w-2xl mx-auto space-y-4">
         {showPlayer && canWatch ? (
           <div className="aspect-video rounded-2xl overflow-hidden bg-black shadow-xl">
-            <iframe src={movie.video_url} className="w-full h-full border-none" allowFullScreen allow="autoplay; fullscreen" />
+            {(() => {
+              const url = movie.video_url || '';
+              if (url.includes('.mp4')) {
+                return <video src={url} controls autoPlay className="w-full h-full object-contain" />;
+              }
+              
+              let embedUrl = url;
+              if (url.includes('youtube.com/watch?v=')) {
+                embedUrl = url.replace('watch?v=', 'embed/');
+              } else if (url.includes('youtu.be/')) {
+                embedUrl = url.replace('youtu.be/', 'youtube.com/embed/');
+              }
+              
+              return <iframe src={embedUrl} className="w-full h-full border-none" allowFullScreen allow="autoplay; fullscreen" />;
+            })()}
           </div>
         ) : (
           <div className="relative aspect-[2/3] max-h-[400px] rounded-2xl overflow-hidden shadow-xl mx-auto">

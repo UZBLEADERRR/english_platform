@@ -81,13 +81,10 @@ export default function Layout() {
     { path: '/profile', label: t('profile'), icon: User },
   ];
 
-  const isFullScreenApp = location.pathname.startsWith('/ai-chat');
-
   return (
     <div className="flex flex-col min-h-[100dvh]">
       {/* Top Navbar */}
-      {!isFullScreenApp && (
-        <nav className="fixed top-2 left-4 right-4 z-[100] bg-surface/90 backdrop-blur-xl border border-theme rounded-full drop-shadow-xl">
+      <nav className="fixed top-2 left-4 right-4 z-[100] bg-surface/90 backdrop-blur-xl border border-theme rounded-full drop-shadow-xl">
         <div className="max-w-lg mx-auto flex items-center justify-around h-12">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -107,21 +104,17 @@ export default function Layout() {
             );
           })}
         </div>
-        </nav>
-      )}
+      </nav>
 
       {/* Main Content */}
       <AnimatePresence mode="popLayout">
         <motion.main
           key={location.pathname}
-          initial={{ opacity: 0, scale: 0.98, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.98, y: -10 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
-          className={cn(
-            "flex-1 w-full mx-auto flex flex-col relative max-w-7xl pb-4",
-            isFullScreenApp ? "px-0 pt-0 h-[100dvh]" : "px-4 pt-20"
-          )}
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -5 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          className="flex-1 w-full mx-auto flex flex-col relative max-w-7xl px-4 pt-20 pb-4"
         >
           <Outlet />
         </motion.main>
