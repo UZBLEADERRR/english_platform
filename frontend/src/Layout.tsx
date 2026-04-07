@@ -5,6 +5,7 @@ import { useAppStore } from './store';
 import { Home, Box, Film as Video, Bot, User } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { AnimatePresence, motion } from 'framer-motion';
 import api from './api';
 
 export function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
@@ -31,7 +32,7 @@ export default function Layout() {
       };
     }
     
-    if (tgUser && !user) {
+    if (tgUser) {
       tg.ready();
       tg.expand();
       api.setTelegramId(tgUser.id.toString());
@@ -46,8 +47,8 @@ export default function Layout() {
         api.setUserId(u.id);
         setUser(u);
       }).catch(console.error);
-    } else if (!tgUser && !user) {
-      // Dev mode: mock user
+    } else if (!user || user.telegram_id === 123456789) {
+      // Dev mode: mock user (only if no Telegram user is available)
       api.setTelegramId('123456789');
       api.loginTelegram({
         telegram_id: 123456789,
@@ -65,6 +66,10 @@ export default function Layout() {
           ai_credits_used: 0, ai_messages_today: 0, grammar_checks_today: 0, is_blocked: false,
         });
       });
+    } else if (user && user.telegram_id !== 123456789) {
+      // Found valid user from cache but outside Telegram (or fallback)
+      api.setTelegramId(user.telegram_id.toString());
+      api.setUserId(user.id);
     }
   }, []);
 
@@ -106,12 +111,21 @@ export default function Layout() {
       )}
 
       {/* Main Content */}
-      <main className={cn(
-        "flex-1 w-full mx-auto flex flex-col relative max-w-7xl pb-4 animate-in fade-in duration-300",
-        isFullScreenApp ? "px-0 pt-0 h-[100dvh]" : "px-4 pt-20"
-      )}>
-        <Outlet />
-      </main>
+      <AnimatePresence mode="popLayout">
+        <motion.main
+          key={location.pathname}
+          initial={{ opacity: 0, scale: 0.98, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.98, y: -10 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className={cn(
+            "flex-1 w-full mx-auto flex flex-col relative max-w-7xl pb-4",
+            isFullScreenApp ? "px-0 pt-0 h-[100dvh]" : "px-4 pt-20"
+          )}
+        >
+          <Outlet />
+        </motion.main>
+      </AnimatePresence>
     </div>
   );
 }

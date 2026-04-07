@@ -21,8 +21,6 @@ export default function AiChat() {
   const [selectedImage, setSelectedImage] = useState<{ url: string; base64: string; mimeType: string } | null>(null);
   const [isArtifactMode, setIsArtifactMode] = useState(false);
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
-  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState('');
   const [previewData, setPreviewData] = useState<{ code: string; language: string } | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
@@ -63,30 +61,6 @@ export default function AiChat() {
     } catch {}
   };
 
-  const startEditTitle = (e: React.MouseEvent, session: any) => {
-    e.stopPropagation();
-    setEditingSessionId(session.id);
-    setEditTitle(session.title);
-  };
-
-  const saveTitle = async (e: React.SyntheticEvent) => {
-    e.stopPropagation();
-    if (editingSessionId && editTitle.trim()) {
-      await api.updateChatSession(editingSessionId, { title: editTitle.trim() }).catch(() => {});
-      setSessions(p => p.map(s => s.id === editingSessionId ? { ...s, title: editTitle.trim() } : s));
-    }
-    setEditingSessionId(null);
-  };
-
-  const deleteSession = async (id: string) => {
-    await api.deleteChatSession(id).catch(() => {});
-    setSessions(p => p.filter(s => s.id !== id));
-    if (currentSessionId === id) {
-      setMessages([]);
-      setCurrentSessionId(null);
-    }
-  };
-
   const handleSend = async () => {
     if ((!input.trim() && !selectedImage) || isLoading || !currentSessionId || !user) return;
 
@@ -106,14 +80,6 @@ export default function AiChat() {
         const filtered = p.filter(m => m.id !== userMsg.id);
         return [...filtered, res.userMessage, res.modelMessage];
       });
-      
-      // Auto-update title if it's the first user message, or if messages was empty before this
-      if (messages.length === 0 || (messages.length === 1 && messages[0].id.startsWith('temp-'))) {
-        const newTitle = currentInput.length > 30 ? currentInput.substring(0, 30) + '...' : (currentInput || 'Image Chat');
-        api.updateChatSession(currentSessionId, { title: newTitle }).catch(() => {});
-        setSessions(prev => prev.map(s => s.id === currentSessionId ? { ...s, title: newTitle } : s));
-      }
-
       if (res.creditsUsed !== undefined) updateUser({ ai_credits_used: res.creditsUsed });
       setIsArtifactMode(false);
     } catch (e: any) {
@@ -159,44 +125,22 @@ export default function AiChat() {
         </div>
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
           {sessions.map(s => (
-            <div key={s.id} onClick={() => loadMessages(s.id)}
-              className={cn("w-full flex items-center justify-between p-2.5 rounded-lg text-left transition-colors text-sm group cursor-pointer", currentSessionId === s.id ? "bg-primary/10 text-primary" : "text-main hover:bg-surface")}>
-              
-              <div className="flex items-center gap-2 overflow-hidden flex-1">
-                <MessageSquare className="w-4 h-4 shrink-0" />
-                {editingSessionId === s.id ? (
-                  <input
-                    autoFocus
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    onBlur={saveTitle}
-                    onKeyDown={(e) => e.key === 'Enter' && saveTitle(e)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-full bg-surface border border-theme rounded px-2 py-1 focus:outline-none"
-                  />
-                ) : (
-                  <span className="truncate">{s.title}</span>
-                )}
-              </div>
-
-              {editingSessionId !== s.id && (
-                <div className="hidden group-hover:flex items-center gap-1 ml-2">
-                  <button onClick={(e) => startEditTitle(e, s)} className="p-1 text-muted hover:text-primary"><Edit2 className="w-3 h-3" /></button>
-                  <button onClick={(e) => { e.stopPropagation(); deleteSession(s.id); }} className="p-1 text-muted hover:text-red-500"><Trash2 className="w-3 h-3" /></button>
-                </div>
-              )}
-            </div>
+            <button key={s.id} onClick={() => loadMessages(s.id)}
+              className={cn("w-full flex items-center gap-2 p-2.5 rounded-lg text-left transition-colors text-sm", currentSessionId === s.id ? "bg-primary/10 text-primary" : "text-main hover:bg-surface")}>
+              <MessageSquare className="w-4 h-4 shrink-0" />
+              <span className="truncate">{s.title}</span>
+            </button>
           ))}
         </div>
       </div>
 
       {/* Main Chat */}
       <div className="flex-1 flex flex-col h-full bg-bg relative overflow-hidden">
-        <div className="h-14 shrink-0 border-b border-theme bg-surface flex items-center px-4 gap-3">
-          <button onClick={() => setIsSidebarOpen(true)} className="md:hidden p-2 -ml-2 text-muted hover:text-main rounded-lg"><Menu className="w-5 h-5" /></button>
-          <button onClick={() => navigate('/')} className="p-2 text-muted hover:text-main rounded-full"><ArrowLeft className="w-5 h-5" /></button>
-          <div className="w-8 h-8 rounded-full bg-teal-500/20 text-teal-500 flex items-center justify-center"><Bot className="w-5 h-5" /></div>
-          <div><h3 className="font-bold text-main text-sm">Teacher Tuxum</h3><p className="text-[10px] text-green-500">Online</p></div>
+        <div className="h-12 shrink-0 border-b border-theme bg-surface flex items-center px-3 gap-2">
+          <button onClick={() => setIsSidebarOpen(true)} className="md:hidden p-1.5 text-muted"><Menu className="w-5 h-5" /></button>
+          <button onClick={() => navigate(-1)} className="p-1.5 text-muted md:hidden"><ArrowLeft className="w-5 h-5" /></button>
+          <div className="w-7 h-7 rounded-full bg-teal-500/20 text-teal-500 flex items-center justify-center"><Bot className="w-4 h-4" /></div>
+          <div><h3 className="font-bold text-main text-sm">AI Teacher</h3><p className="text-[10px] text-green-500">Online</p></div>
         </div>
 
         {/* Messages */}

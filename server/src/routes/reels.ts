@@ -18,7 +18,7 @@ reelsRouter.get('/words/:categoryId', async (req, res) => {
     .from('reel_words')
     .select('*')
     .eq('category_id', req.params.categoryId)
-    .order('sort_order');
+    .order('created_at', { ascending: true });
   
   const { data: words } = await query;
   
