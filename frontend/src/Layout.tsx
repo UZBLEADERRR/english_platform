@@ -110,10 +110,10 @@ export default function Layout() {
       <AnimatePresence mode="popLayout">
         <motion.main
           key={location.pathname}
-          initial={{ opacity: 0, y: 5 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -5 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
+          exit={{ opacity: 0, y: -15 }}
+          transition={{ duration: 0.5, ease: 'easeOut', delay: 0.1 }}
           className="flex-1 w-full mx-auto flex flex-col relative max-w-7xl px-4 pt-20 pb-4"
         >
           <Outlet />
