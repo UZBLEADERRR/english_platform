@@ -66,47 +66,40 @@ export default function Layout() {
     { path: '/profile', label: t('profile'), icon: User },
   ];
 
-  const isFullscreen = ['/ai-chat', '/reels'].some(p => location.pathname.startsWith(p));
-
   return (
-    <div className={cn("flex flex-col", isFullscreen ? "h-[100dvh] overflow-hidden" : "min-h-[100dvh]")}>
+    <div className="flex flex-col min-h-[100dvh]">
+      {/* Top Navbar */}
+      <nav className="fixed top-2 left-4 right-4 z-[100] bg-surface/90 backdrop-blur-xl border border-theme rounded-3xl drop-shadow-xl">
+        <div className="max-w-lg mx-auto flex items-center justify-around h-16">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "flex flex-col items-center gap-1 px-2 py-1 rounded-2xl transition-all duration-300 min-w-[56px]",
+                  isActive ? "text-primary" : "text-muted hover:text-main"
+                )}
+              >
+                <div className={cn(
+                  "p-1.5 rounded-xl transition-all",
+                  isActive && "bg-primary/10"
+                )}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-medium">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+
       {/* Main Content */}
-      <main className={cn(
-        "flex-1 w-full mx-auto flex flex-col relative",
-        isFullscreen ? "max-w-none p-0 overflow-hidden" : "max-w-7xl p-4 pb-20"
-      )}>
+      <main className="flex-1 w-full mx-auto flex flex-col relative max-w-7xl px-4 pt-24 pb-8">
         <Outlet />
       </main>
-
-      {/* Bottom Navbar */}
-      {!isFullscreen && (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-xl border-t border-theme safe-area-bottom">
-          <div className="max-w-lg mx-auto flex items-center justify-around h-16">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={cn(
-                    "flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all duration-300 min-w-[56px]",
-                    isActive ? "text-primary" : "text-muted hover:text-main"
-                  )}
-                >
-                  <div className={cn(
-                    "p-1.5 rounded-xl transition-all",
-                    isActive && "bg-primary/10"
-                  )}>
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <span className="text-[10px] font-medium">{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-      )}
     </div>
   );
 }
