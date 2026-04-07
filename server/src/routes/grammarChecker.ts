@@ -19,7 +19,7 @@ grammarCheckerRouter.post('/check', async (req, res) => {
     user.grammar_checks_today = 0;
   }
 
-  const limits: Record<string, number> = { free: 1, premium: 1, ultra: 999999 };
+  const limits: Record<string, number> = { free: 1, premium: 5, ultra: 999999 };
   if (user.grammar_checks_today >= (limits[user.subscription] || 1)) {
     return res.status(429).json({ error: 'Daily limit reached', subscription: user.subscription });
   }
@@ -34,20 +34,23 @@ grammarCheckerRouter.post('/check', async (req, res) => {
     }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-2.5-flash',
       contents: [{ role: 'user', parts }],
-      config: { systemInstruction: "You are an English grammar checker. Always respond in valid JSON format." }
+      config: { 
+        systemInstruction: "You are an English grammar checker. Always respond in valid JSON format only. No markdown fences.",
+        maxOutputTokens: 2048
+      }
     });
 
     await supabase.from('users').update({ grammar_checks_today: user.grammar_checks_today + 1, ai_credits_used: user.ai_credits_used + 1 }).eq('id', user.id);
 
     const responseText = response.text || '{}';
-    // Try parse JSON
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     const result = jsonMatch ? JSON.parse(jsonMatch[0]) : { originalText: text, correctedText: responseText, errors: [] };
 
     res.json(result);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    console.error('Grammar checker error:', error);
+    res.status(500).json({ error: error.message || 'AI xatolik yuz berdi' });
   }
 });

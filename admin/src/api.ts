@@ -77,8 +77,12 @@ class AdminApi {
   addReelCategory(d: any) { return this.post('/api/reels/categories', d); }
   deleteReelCategory(id: string) { return this.del(`/api/reels/categories/${id}`); }
   addReelWord(data: any) { return this.post('/api/reels/words', data); }
+  updateReelWord(id: string, data: any) { return this.put(`/api/reels/words/${id}`, data); }
   generateReelWords(data: { category_id: string, words_string: string }) { return this.post('/api/reels/generate-words', data); }
   deleteReelWord(id: string) { return this.del(`/api/reels/words/${id}`); }
+  
+  // Token usage
+  getTokenStats() { return this.get('/api/chat/token-stats'); }
   
   // Users
   getUsers(page?: number, search?: string) { return this.get(`/api/users/admin/all?page=${page || 1}&search=${search || ''}`); }

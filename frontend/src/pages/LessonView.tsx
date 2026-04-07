@@ -93,12 +93,30 @@ export default function LessonView() {
         );
       }
 
-      case 'webview':
+      case 'webview': {
+        const iframeRef = React.createRef<HTMLIFrameElement>();
+        const autoResize = () => {
+          try {
+            const iframe = iframeRef.current;
+            if (iframe && iframe.contentDocument) {
+              const h = iframe.contentDocument.documentElement.scrollHeight;
+              iframe.style.height = h + 'px';
+            }
+          } catch (e) {}
+        };
         return (
           <div className="rounded-2xl overflow-hidden border border-theme shadow-md">
-            <iframe srcDoc={content.html_code} className="w-full min-h-[300px] border-none bg-white" sandbox="allow-scripts allow-same-origin allow-forms" />
+            <iframe
+              ref={iframeRef}
+              srcDoc={content.html_code}
+              className="w-full border-none bg-white"
+              style={{ minHeight: '200px' }}
+              sandbox="allow-scripts allow-same-origin allow-forms"
+              onLoad={autoResize}
+            />
           </div>
         );
+      }
 
       case 'quiz': {
         const answered = quizAnswers[id] !== undefined;

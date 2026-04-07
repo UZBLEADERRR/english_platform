@@ -300,6 +300,22 @@ CREATE TABLE chat_messages (
 );
 
 -- ============================================
+-- 14b. TOKEN USAGE TRACKING
+-- ============================================
+CREATE TABLE token_usage (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  input_tokens INTEGER DEFAULT 0,
+  output_tokens INTEGER DEFAULT 0,
+  model TEXT,
+  endpoint TEXT, -- 'chat', 'grammar', 'reels'
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_token_usage_user ON token_usage(user_id);
+CREATE INDEX idx_token_usage_created ON token_usage(created_at);
+
+-- ============================================
 -- 15. USER PROGRESS
 -- ============================================
 CREATE TABLE user_progress (

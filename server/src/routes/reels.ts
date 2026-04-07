@@ -13,20 +13,17 @@ reelsRouter.get('/categories', async (_, res) => {
   res.json(data || []);
 });
 
-// Get words for a category (excluding known words for user)
+// Get words for a category
 reelsRouter.get('/words/:categoryId', async (req, res) => {
   const userId = req.headers['x-user-id'] as string;
   
-  let query = supabase
+  const { data: words } = await supabase
     .from('reel_words')
     .select('*')
     .eq('category_id', req.params.categoryId)
     .order('created_at', { ascending: true });
   
-  const { data: words } = await query;
-  
   if (userId && words) {
-    // Get known words
     const { data: knownWords } = await supabase
       .from('user_known_words')
       .select('word_id')
@@ -70,7 +67,7 @@ reelsRouter.get('/user-words/:userId', async (req, res) => {
   res.json({ known: known || [], unknown: unknown || [] });
 });
 
-// Admin routes
+// ---- Admin routes ----
 reelsRouter.get('/admin/all', adminAuth, async (_, res) => {
   const { data } = await supabase.from('reel_categories').select('*, reel_words(*)').order('sort_order');
   res.json(data || []);
@@ -99,26 +96,41 @@ reelsRouter.post('/words', adminAuth, async (req, res) => {
   res.json(data);
 });
 
+// Update a single word (admin can edit image_url or word text)
+reelsRouter.put('/words/:id', adminAuth, async (req, res) => {
+  const { data, error } = await supabase.from('reel_words').update(req.body).eq('id', req.params.id).select().single();
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
 reelsRouter.delete('/words/:id', adminAuth, async (req, res) => {
   await supabase.from('reel_words').delete().eq('id', req.params.id);
   res.json({ success: true });
 });
 
+// AI-powered word generation
 reelsRouter.post('/generate-words', adminAuth, async (req, res) => {
   const { category_id, words_string } = req.body;
   if (!category_id || !words_string) return res.status(400).json({ error: 'Missing field' });
 
   const wordsList = words_string.split(',').map((w: string) => w.trim()).filter(Boolean);
-  const results = [];
+  const results: any[] = [];
 
   for (const word of wordsList) {
     try {
-      const prompt = `Translate the English word "${word}" to Uzbek (just the short translation). Then write a simple short English sentence using "${word}". Output strictly as JSON: {"translation": "...", "example": "..."}`;
+      // Step 1: Get translation + example from Gemini
+      const prompt = `For the English word "${word}":
+1. Give me the Uzbek translation (a single short word/phrase).
+2. Write one simple English example sentence using "${word}".
+3. Describe a fun, colorful cartoon illustration that shows the meaning of "${word}" for a language learner. The description should be vivid enough to generate an image.
+
+Reply ONLY as JSON:
+{"translation": "...", "example": "...", "image_description": "..."}`;
       
       const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-2.5-flash',
         contents: prompt,
-        config: { systemInstruction: "Output JSON only.", maxOutputTokens: 256 }
+        config: { systemInstruction: "Output valid JSON only. No markdown.", maxOutputTokens: 300 }
       });
 
       const text = response.text || '';
@@ -127,11 +139,14 @@ reelsRouter.post('/generate-words', adminAuth, async (req, res) => {
       
       const parsed = JSON.parse(match[0]);
       const translation = parsed.translation || word;
-      const example = parsed.example || word;
+      const example = parsed.example || `I see a ${word}.`;
+      const imageDesc = parsed.image_description || `A cute cartoon of ${word}`;
 
-      const imagePrompt = `A creative, highly detailed mobile wallpaper illustration depicting the concept of: ${example}. Cinematic lighting, vibrant colors.`;
+      // Step 2: Generate image via Pollinations with a very specific prompt
+      const imagePrompt = `Cute colorful cartoon illustration for kids learning English: ${imageDesc}. The word "${word.toUpperCase()}" is written in large bold white letters at the top center. Below it "${translation}" in green. Simple, clean, fun, educational mobile wallpaper style, 9:16 aspect ratio, no text overlap with illustration, bright pastel background.`;
       const encodedPrompt = encodeURIComponent(imagePrompt);
-      const image_url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=720&height=1280&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+      const seed = Math.floor(Math.random() * 100000);
+      const image_url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=720&height=1280&nologo=true&seed=${seed}`;
 
       const combinedWord = `${word}||${translation}||${example}`;
       
@@ -143,7 +158,7 @@ reelsRouter.post('/generate-words', adminAuth, async (req, res) => {
       
       if (data) results.push(data);
     } catch (e) {
-      console.error('Error generating word', word, e);
+      console.error('Error generating word:', word, e);
     }
   }
 

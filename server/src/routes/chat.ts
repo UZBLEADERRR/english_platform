@@ -63,6 +63,36 @@ chatRouter.post('/sessions', async (req, res) => {
   res.json(data);
 });
 
+// Token tracking helper
+function estimateTokens(text: string): number {
+  // Rough estimation: ~4 chars per token
+  return Math.ceil(text.length / 4);
+}
+
+// Get token usage stats
+chatRouter.get('/token-stats', async (_, res) => {
+  const { data } = await supabase.from('token_usage').select('*').order('created_at', { ascending: false }).limit(100);
+  
+  let totalInput = 0, totalOutput = 0;
+  (data || []).forEach((row: any) => {
+    totalInput += row.input_tokens || 0;
+    totalOutput += row.output_tokens || 0;
+  });
+  
+  // Pricing: input $1/1M tokens, output $5/1M tokens
+  const inputCost = (totalInput / 1_000_000) * 1;
+  const outputCost = (totalOutput / 1_000_000) * 5;
+  
+  res.json({
+    totalInputTokens: totalInput,
+    totalOutputTokens: totalOutput,
+    inputCostUSD: inputCost.toFixed(4),
+    outputCostUSD: outputCost.toFixed(4),
+    totalCostUSD: (inputCost + outputCost).toFixed(4),
+    recentUsage: data || []
+  });
+});
+
 // Send message and get AI response
 chatRouter.post('/send', async (req, res) => {
   const { session_id, user_id, text, image_base64, image_mime_type, is_artifact_mode } = req.body;
@@ -108,7 +138,7 @@ chatRouter.post('/send', async (req, res) => {
     }));
     
     const systemInstruction = is_artifact_mode
-      ? "Sen Teacher Tuxum (Ustoz Tuxum) san. Qattiqqo'l, hazilkash ingliz tili ustozi. FAQAT bitta ```html blokida HTML, CSS (Tailwind CDN) va JS yoz. Mobile-responsive bo'lishi SHART."
+      ? "Sen Teacher Tuxum (Ustoz Tuxum) san. Qattiqqo'l, hazilkash ingliz tili ustozi. FAQAT bitta ```html blokida HTML, CSS (Tailwind CDN) va JS yoz. Mobile-responsive bo'lishi SHART. Hech qanday tushuntirish yozma, faqat kod ber."
       : "Sen Teacher Tuxum (Ustoz Tuxum) san. Qattiqqo'l, hazilkash ingliz tili ustozi. Tushuntirishlaring aniq, hazil va qattiqqo'llik bilan. Emojilardan foydalan. Interaktiv HTML yaratma, faqat text, misollar ber.";
     
     const currentParts: any[] = [{ text: text || "Bu rasmda nima bor?" }];
@@ -118,13 +148,31 @@ chatRouter.post('/send', async (req, res) => {
     
     const contents = [...chatHistory, { role: 'user' as const, parts: currentParts }];
     
+    // Build full input text for token counting
+    const fullInputText = contents.map(c => c.parts.map((p: any) => p.text || '').join('')).join('\n') + systemInstruction;
+    const inputTokens = estimateTokens(fullInputText);
+    
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-2.5-flash',
       contents,
       config: { systemInstruction, maxOutputTokens: 8192 }
     });
     
     const responseText = response.text || 'Kechirasiz, javob berib bo\'lmadi.';
+    const outputTokens = estimateTokens(responseText);
+    
+    // Save token usage
+    try {
+      await supabase.from('token_usage').insert({
+        user_id,
+        input_tokens: inputTokens,
+        output_tokens: outputTokens,
+        model: 'gemini-2.5-flash',
+        endpoint: 'chat'
+      });
+    } catch (e) {
+      // token_usage table might not exist yet, ignore
+    }
     
     // Save model response
     const { data: modelMsg } = await supabase
@@ -147,7 +195,12 @@ chatRouter.post('/send', async (req, res) => {
       await supabase.from('chat_sessions').update({ updated_at: now.toISOString() }).eq('id', session_id);
     }
     
-    res.json({ userMessage: userMsg, modelMessage: modelMsg, creditsUsed: user.ai_credits_used + 1 });
+    res.json({ 
+      userMessage: userMsg, 
+      modelMessage: modelMsg, 
+      creditsUsed: user.ai_credits_used + 1,
+      tokens: { input: inputTokens, output: outputTokens }
+    });
   } catch (error: any) {
     console.error('AI Error:', error);
     const errorMsg = await supabase
@@ -161,6 +214,7 @@ chatRouter.post('/send', async (req, res) => {
 
 // Delete session
 chatRouter.delete('/sessions/:id', async (req, res) => {
+  await supabase.from('chat_messages').delete().eq('session_id', req.params.id);
   await supabase.from('chat_sessions').delete().eq('id', req.params.id);
   res.json({ success: true });
 });

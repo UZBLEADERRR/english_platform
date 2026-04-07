@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from './i18n';
 import { useAppStore } from './store';
 import { Home, Box, Film as Video, Bot, User } from 'lucide-react';
@@ -32,8 +32,8 @@ export default function Layout() {
     }
     
     if (tgUser) {
-      tg.ready();
-      tg.expand();
+      tg?.ready?.();
+      tg?.expand?.();
       api.setTelegramId(tgUser.id.toString());
       api.loginTelegram({
         telegram_id: tgUser.id,
@@ -41,13 +41,13 @@ export default function Layout() {
         first_name: tgUser.first_name,
         last_name: tgUser.last_name,
         avatar_url: tgUser.photo_url,
-        referral_code: new URLSearchParams(tg.initDataUnsafe?.start_param || '').get('ref'),
+        referral_code: new URLSearchParams(tg?.initDataUnsafe?.start_param || '').get('ref'),
       }).then(({ user: u }) => {
         api.setUserId(u.id);
         setUser(u);
       }).catch(console.error);
     } else if (!user || user.telegram_id === 123456789) {
-      // Dev mode: mock user (only if no Telegram user is available)
+      // Dev mode
       api.setTelegramId('123456789');
       api.loginTelegram({
         telegram_id: 123456789,
@@ -58,7 +58,6 @@ export default function Layout() {
         api.setUserId(u.id);
         setUser(u);
       }).catch(() => {
-        // Server not running - set mock user
         setUser({
           id: 'mock-id', telegram_id: 123456789, username: 'dev_user',
           first_name: 'Dev', role: 'user', subscription: 'free',
@@ -66,7 +65,6 @@ export default function Layout() {
         });
       });
     } else if (user && user.telegram_id !== 123456789) {
-      // Found valid user from cache but outside Telegram (or fallback)
       api.setTelegramId(user.telegram_id.toString());
       api.setUserId(user.id);
     }
@@ -106,7 +104,10 @@ export default function Layout() {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1 w-full mx-auto flex flex-col relative max-w-7xl px-4 pt-20 pb-4 animate-in fade-in duration-500">
+      <main 
+        key={location.pathname}
+        className="flex-1 w-full mx-auto flex flex-col relative max-w-7xl px-4 pt-20 pb-4 page-enter"
+      >
         <Outlet />
       </main>
     </div>
