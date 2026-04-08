@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { supabase } from '../supabase.js';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export const chatRouter = Router();
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 // Get user's chat sessions
 chatRouter.get('/sessions/:userId', async (req, res) => {
@@ -178,9 +178,9 @@ chatRouter.post('/send', async (req, res) => {
     const fullInputText = contents.map(c => c.parts.map((p: any) => p.text || '').join('')).join('\n') + (typeof systemInstruction === 'string' ? systemInstruction : '');
     const inputTokens = estimateTokens(fullInputText);
     
-    const model = ai.getGenerativeModel({ 
+    const model = genAI.getGenerativeModel({ 
       model: 'gemini-1.5-flash',
-      systemInstruction
+      systemInstruction: systemInstruction as string
     });
     
     const result = await model.generateContent({
