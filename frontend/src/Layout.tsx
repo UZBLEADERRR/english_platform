@@ -117,7 +117,7 @@ export default function Layout() {
           "mx-auto flex flex-col relative page-enter w-full duration-500",
           isFullBleed ? "flex-1 h-[calc(100dvh)] pt-[60px]" : "flex-1 max-w-7xl px-4 pb-4 min-h-[100dvh]",
           !hideNavbar && !isFullBleed ? "pt-20" : "",
-          hideNavbar && !isFullBleed ? "pt-16" : ""
+          hideNavbar && !isFullBleed ? "pt-6" : ""
         )}
       >
         <Outlet />

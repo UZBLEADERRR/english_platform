@@ -10,21 +10,21 @@ const defaultCarousel = [
 ];
 
 const fallbackCategories = [
-  { id: 'grammar', custom_name: 'Grammar', image_url: '' },
-  { id: 'vocabulary', custom_name: 'Vocabulary', image_url: '' },
-  { id: 'reading', custom_name: 'Reading', image_url: '' },
-  { id: 'listening', custom_name: 'Listening', image_url: '' },
-  { id: 'writing', custom_name: 'Writing', image_url: '' },
-  { id: 'speaking', custom_name: 'Speaking', image_url: '' },
-  { id: 'movies', custom_name: 'Movies', image_url: '' },
-  { id: 'comics', custom_name: 'Comics', image_url: '' },
-  { id: 'songs', custom_name: 'Songs', image_url: '' },
-  { id: 'library', custom_name: 'Library', image_url: '' },
-  { id: 'apps', custom_name: 'Ilovalar', image_url: '' },
-  { id: 'reels', custom_name: 'Reels', image_url: '' },
-  { id: 'ai-chat', custom_name: 'Virtual Teacher', image_url: '' },
-  { id: 'grammar_checker', custom_name: 'Grammar Checker', image_url: '' },
-  { id: 'tips', custom_name: 'Tips', image_url: '' },
+  { id: 'grammar', custom_name: 'Grammar', image_url: 'https://my-icon-2004.b-cdn.net/grammar_tx.jpg' },
+  { id: 'vocabulary', custom_name: 'Vocabulary', image_url: 'https://my-icon-2004.b-cdn.net/vocabulary_tx.jpg' },
+  { id: 'reading', custom_name: 'Reading', image_url: 'https://my-icon-2004.b-cdn.net/reading_tx.jpg' },
+  { id: 'listening', custom_name: 'Listening', image_url: 'https://my-icon-2004.b-cdn.net/listening_tx.jpg' },
+  { id: 'writing', custom_name: 'Writing', image_url: 'https://my-icon-2004.b-cdn.net/writing_tx.jpg' },
+  { id: 'speaking', custom_name: 'Speaking', image_url: 'https://my-icon-2004.b-cdn.net/speaking_tx.jpg' },
+  { id: 'movies', custom_name: 'Movies', image_url: 'https://my-icon-2004.b-cdn.net/movies_tx.jpg' },
+  { id: 'comics', custom_name: 'Comics', image_url: 'https://my-icon-2004.b-cdn.net/comics_tx.jpg' },
+  { id: 'songs', custom_name: 'Songs', image_url: 'https://my-icon-2004.b-cdn.net/songs_tx.jpg' },
+  { id: 'library', custom_name: 'Library', image_url: 'https://my-icon-2004.b-cdn.net/library_tx.jpg' },
+  { id: 'apps', custom_name: 'Ilovalar', image_url: 'https://my-icon-2004.b-cdn.net/apps_tx.jpg' },
+  { id: 'reels', custom_name: 'Reels', image_url: 'https://my-icon-2004.b-cdn.net/reels_tx.jpg' },
+  { id: 'ai-chat', custom_name: 'Virtual Teacher', image_url: 'https://my-icon-2004.b-cdn.net/virtual_tx.jpg' },
+  { id: 'grammar_checker', custom_name: 'Grammar Checker', image_url: 'https://my-icon-2004.b-cdn.net/grammarChecker_tx.jpg' },
+  { id: 'tips', custom_name: 'Tips', image_url: 'https://my-icon-2004.b-cdn.net/tips_tx.jpg' },
 ];
 
 export default function Home() {

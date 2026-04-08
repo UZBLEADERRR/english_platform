@@ -26,6 +26,18 @@ chatRouter.get('/messages/:sessionId', async (req, res) => {
   res.json(data || []);
 });
 
+// Update a message (for artifact editing)
+chatRouter.put('/messages/:id', async (req, res) => {
+  const { data, error } = await supabase
+    .from('chat_messages')
+    .update(req.body)
+    .eq('id', req.params.id)
+    .select()
+    .single();
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
 // Get user artifacts (AI generated HTML apps)
 chatRouter.get('/artifacts/:userId', async (req, res) => {
   const { data: sessions } = await supabase.from('chat_sessions').select('id').eq('user_id', req.params.userId);

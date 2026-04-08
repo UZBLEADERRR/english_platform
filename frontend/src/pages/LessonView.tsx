@@ -104,11 +104,39 @@ export default function LessonView() {
             }
           } catch (e) {}
         };
+        
+        // Render JSX natively if missing HTML tags
+        let finalHtml = content.html_code || '';
+        if (finalHtml && !finalHtml.includes('<html') && (finalHtml.includes('import React') || finalHtml.includes('export default'))) {
+          const cleanCode = finalHtml.replace(/import\s+.*?from\s+['"].*?['"];?\n?/g, '');
+          finalHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    ${cleanCode}
+    if (typeof App !== 'undefined') {
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(React.createElement(App));
+    }
+  </script>
+</body>
+</html>`;
+        }
+
         return (
-          <div className="rounded-2xl overflow-hidden border border-theme shadow-md">
+          <div className="-mx-4 md:mx-0 overflow-hidden border-y md:border md:rounded-2xl border-theme shadow-md">
             <iframe
               ref={iframeRef}
-              srcDoc={content.html_code}
+              srcDoc={finalHtml}
               className="w-full border-none bg-white"
               style={{ minHeight: '200px' }}
               sandbox="allow-scripts allow-same-origin allow-forms"
@@ -175,7 +203,7 @@ export default function LessonView() {
   };
 
   return (
-    <div className="space-y-4 animate-in slide-in-from-right-4 duration-300 max-w-2xl mx-auto">
+    <div className="space-y-2 animate-in slide-in-from-right-4 duration-300 max-w-2xl mx-auto pb-6">
       <button onClick={() => navigate(-1)} className="flex items-center gap-2 p-2 rounded-full hover:bg-elevated transition-colors text-main">
         <ArrowLeft className="w-5 h-5" />
         <span className="font-medium">Orqaga</span>
