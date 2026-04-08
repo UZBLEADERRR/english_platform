@@ -13,7 +13,17 @@ export default function Apps() {
   const [activeTab, setActiveTab] = useState<'required' | 'my'>('required');
   const [myApps, setMyApps] = useState<any[]>([]);
   const [viewingApp, setViewingApp] = useState<any>(null);
-  const { user } = useAppStore();
+  const { user, setIsNavbarHidden } = useAppStore();
+
+  const handleOpenApp = (app: any) => {
+    setIsNavbarHidden(true);
+    setViewingApp(app);
+  };
+
+  const handleCloseApp = () => {
+    setIsNavbarHidden(false);
+    setViewingApp(null);
+  };
 
   useEffect(() => {
     api.getApps().then(setApps).catch(() => {});
@@ -65,7 +75,7 @@ export default function Apps() {
                 return;
               }
               if (app.app_type === 'link' && app.link_url) { window.location.href = app.link_url; }
-              else { setViewingApp(app); }
+              else { handleOpenApp(app); }
             }} className="flex flex-col items-center gap-2 outline-none w-full relative">
               {app.is_locked && user?.subscription === 'free' && (
                 <div className="absolute top-0 right-0 p-1 bg-yellow-500 rounded-full shadow-lg z-10"><Lock className="w-3 h-3 text-white" /></div>
@@ -117,7 +127,7 @@ export default function Apps() {
       {viewingApp && (
         <div className="fixed inset-0 z-[200] bg-bg animate-in slide-in-from-bottom-4 duration-300 flex flex-col">
           <div className="h-12 bg-surface border-b border-theme flex items-center px-4 shrink-0 justify-between">
-            <button onClick={() => setViewingApp(null)} className="flex items-center gap-1.5 px-3 py-1.5 bg-elevated rounded-full hover:bg-white/10 text-main font-medium text-sm transition-colors border border-theme">
+            <button onClick={handleCloseApp} className="flex items-center gap-1.5 px-3 py-1.5 bg-elevated rounded-full hover:bg-white/10 text-main font-medium text-sm transition-colors border border-theme">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
               Orqaga
             </button>

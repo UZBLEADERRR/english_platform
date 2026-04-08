@@ -105,9 +105,10 @@ export default function Layout() {
   ];
 
   const mainNavPaths = ['/', '/apps', '/reels', '/ai-chat', '/profile'];
-  const hideNavbar = !mainNavPaths.includes(location.pathname);
+  const { isNavbarHidden: isHiddenByStore } = useAppStore();
+  const hideNavbar = !mainNavPaths.includes(location.pathname) || isHiddenByStore;
 
-  const isFullBleed = /^\/(reels|ai-chat)$/i.test(location.pathname);
+  const isFullBleed = /^\/(reels|ai-chat)$/i.test(location.pathname) || isHiddenByStore;
 
   return (
     <div className="flex flex-col min-h-[100dvh] bg-bg relative">

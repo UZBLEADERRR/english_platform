@@ -181,7 +181,7 @@ chatRouter.post('/send', async (req, res) => {
     const inputTokens = estimateTokens(fullInputText);
     
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-1.5-flash',
       contents,
       config: { systemInstruction, maxOutputTokens: 8192 }
     });
@@ -195,7 +195,7 @@ chatRouter.post('/send', async (req, res) => {
         user_id,
         input_tokens: inputTokens,
         output_tokens: outputTokens,
-        model: 'gemini-2.5-flash',
+        model: 'gemini-1.5-flash',
         endpoint: 'chat'
       });
     } catch (e) {

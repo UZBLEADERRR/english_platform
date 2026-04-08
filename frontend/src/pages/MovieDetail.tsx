@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
 import api from '../api';
-import { ArrowLeft, Play, Lock, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward, Pause } from 'lucide-react';
+import { ArrowLeft, Play, Lock, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward, Pause, ExternalLink } from 'lucide-react';
 import Hls from 'hls.js';
 
 export default function MovieDetail() {
@@ -27,6 +27,8 @@ export default function MovieDetail() {
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [hlsInstance, setHlsInstance] = useState<Hls | null>(null);
+  const [isFakeFullscreen, setIsFakeFullscreen] = useState(false);
+  const { user, setIsNavbarHidden } = useAppStore();
 
   const controlsTimeoutRef = useRef<any>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -160,6 +162,12 @@ export default function MovieDetail() {
     }
   };
 
+  const toggleFakeFullscreen = () => {
+    const newState = !isFakeFullscreen;
+    setIsFakeFullscreen(newState);
+    setIsNavbarHidden(newState);
+  };
+
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60);
@@ -200,7 +208,7 @@ export default function MovieDetail() {
         <ArrowLeft className="w-5 h-5" /><span className="font-medium">Orqaga</span>
       </button>
 
-      <div className="max-w-4xl mx-auto space-y-4 px-4 pb-12">
+      <div className={cn("max-w-4xl mx-auto space-y-4 px-4 pb-12", isFakeFullscreen && "fixed inset-0 z-[500] bg-black max-w-none p-0 pb-0")}>
         {isAgeRestricted ? (
           <div className="relative aspect-[2/3] max-h-[400px] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl mx-auto ring-1 ring-white/10 flex items-center justify-center bg-surface">
             <div className="absolute inset-0 bg-red-900/20" />
@@ -211,7 +219,7 @@ export default function MovieDetail() {
             </div>
           </div>
         ) : showPlayer && canWatch ? (
-          <div ref={playerContainerRef} className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-xl cursor-pointer group" onClick={resetControlsTimer} onMouseMove={resetControlsTimer}>
+          <div ref={playerContainerRef} className={cn("relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-xl cursor-pointer group", isFakeFullscreen && "h-full rounded-none")} onClick={resetControlsTimer} onMouseMove={resetControlsTimer}>
             {isDirectVideo ? (
               <>
                 <video
@@ -227,6 +235,12 @@ export default function MovieDetail() {
                   <button onClick={togglePlay} className="absolute inset-0 flex items-center justify-center z-10">
                     {!isPlaying && <div className="p-5 rounded-full bg-black/40 backdrop-blur-md shadow-lg border border-white/20"><Play className="w-10 h-10 text-white fill-white ml-1" /></div>}
                   </button>
+                  
+                  {isFakeFullscreen && (
+                    <button onClick={toggleFakeFullscreen} className="absolute top-4 left-4 z-50 p-2 bg-black/40 backdrop-blur-md rounded-full text-white border border-white/20">
+                      <ArrowLeft className="w-6 h-6" />
+                    </button>
+                  )}
 
                   <div className="relative z-20 p-4 space-y-3">
                     {/* Time & Progress */}
@@ -280,7 +294,10 @@ export default function MovieDetail() {
 
                         <button onClick={(e) => { e.stopPropagation(); skip(-10); }} className="text-white hover:text-primary transition-colors hidden sm:block"><SkipBack className="w-5 h-5" /></button>
                         <button onClick={(e) => { e.stopPropagation(); skip(10); }} className="text-white hover:text-primary transition-colors hidden sm:block"><SkipForward className="w-5 h-5" /></button>
-                        <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="text-white hover:text-primary transition-colors">
+                        <button onClick={(e) => { e.stopPropagation(); toggleFakeFullscreen(); }} className={cn("text-white hover:text-primary transition-colors", isFakeFullscreen && "text-primary")}>
+                           <Maximize className="w-5 h-5" />
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="text-white hover:text-primary transition-colors hidden sm:block">
                           {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
                         </button>
                       </div>
@@ -300,8 +317,18 @@ export default function MovieDetail() {
           </div>
         )}
 
+        {!isFakeFullscreen && (
         <div className="space-y-4 px-1 pb-4">
           <h1 className="text-3xl font-extrabold text-main">{movie.title}</h1>
+          
+          <div className="flex flex-wrap gap-2">
+            <button 
+              onClick={() => window.open(movie.video_url, '_blank')}
+              className="px-4 py-2 bg-surface border border-theme rounded-xl text-main text-sm font-bold hover:bg-elevated transition-colors flex items-center gap-2"
+            >
+              <ExternalLink className="w-4 h-4" /> Tashqi brauzerda ochish
+            </button>
+          </div>
           
           {movie.info_html ? (
             <div className="-mx-4 md:mx-0 rounded-none md:rounded-3xl overflow-hidden border-y md:border border-theme shadow-xl">

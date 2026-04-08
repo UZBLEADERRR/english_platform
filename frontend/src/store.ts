@@ -29,12 +29,14 @@ interface AppState {
   language: Language;
   user: User | null;
   isLoggedIn: boolean;
+  isNavbarHidden: boolean;
   
   toggleTheme: () => void;
   setLanguage: (lang: Language) => void;
   setUser: (user: User) => void;
   logout: () => void;
   updateUser: (data: Partial<User>) => void;
+  setIsNavbarHidden: (hidden: boolean) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -44,6 +46,7 @@ export const useAppStore = create<AppState>()(
       language: 'uz',
       user: null,
       isLoggedIn: false,
+      isNavbarHidden: false,
       
       toggleTheme: () => set((state) => {
         const newTheme = state.theme === 'light' ? 'dark' : 'light';
@@ -60,6 +63,8 @@ export const useAppStore = create<AppState>()(
       updateUser: (data) => set((state) => ({
         user: state.user ? { ...state.user, ...data } : null
       })),
+
+      setIsNavbarHidden: (isNavbarHidden) => set({ isNavbarHidden }),
     }),
     {
       name: 'english-platform-storage',
