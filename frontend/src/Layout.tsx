@@ -11,9 +11,14 @@ export { cn };
 export default function Layout() {
   const t = useTranslation();
   const location = useLocation();
-  const { user, setUser } = useAppStore();
+  const { user, setUser, isNavbarHidden: isHiddenByStore, setIsNavbarHidden } = useAppStore();
   const [showReg, setShowReg] = useState(false);
   const [regData, setRegData] = useState({ first_name: '', age: '', gender: '' });
+
+  // Reset navbar visibility when navigating between pages
+  useEffect(() => {
+    setIsNavbarHidden(false);
+  }, [location.pathname, setIsNavbarHidden]);
 
   useEffect(() => {
     // Try Telegram WebApp init
@@ -103,9 +108,7 @@ export default function Layout() {
     { path: '/profile', label: t('profile'), icon: User },
   ];
 
-  const mainNavPaths = ['/', '/apps', '/reels', '/ai-chat', '/profile'];
-  const { isNavbarHidden: isHiddenByStore } = useAppStore();
-  const hideNavbar = !mainNavPaths.includes(location.pathname) || isHiddenByStore;
+  const hideNavbar = isHiddenByStore;
 
   const isFullBleed = /^\/(reels|ai-chat)$/i.test(location.pathname) || isHiddenByStore;
 
