@@ -28,7 +28,7 @@ export default function MovieDetail() {
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [hlsInstance, setHlsInstance] = useState<Hls | null>(null);
   const [isFakeFullscreen, setIsFakeFullscreen] = useState(false);
-  const { user, setIsNavbarHidden } = useAppStore();
+  const { setIsNavbarHidden } = useAppStore();
 
   const controlsTimeoutRef = useRef<any>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -376,7 +376,7 @@ export default function MovieDetail() {
             </div>
           )}
         </div>
+        )}
       </div>
     </div>
   );
-}
