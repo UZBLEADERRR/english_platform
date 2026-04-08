@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import BackButton from './components/BackButton';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from './i18n';
 import { useAppStore } from './store';
@@ -110,6 +111,7 @@ export default function Layout() {
         </div>
       </nav>
       )}
+       {hideNavbar && <BackButton />}
 
       {/* Main Content */}
       <main 
