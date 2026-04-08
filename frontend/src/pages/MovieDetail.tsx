@@ -4,6 +4,7 @@ import { useAppStore } from '../store';
 import api from '../api';
 import { ArrowLeft, Play, Lock, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward, Pause, ExternalLink } from 'lucide-react';
 import Hls from 'hls.js';
+import { cn } from '../utils';
 
 export default function MovieDetail() {
   const { id } = useParams();
