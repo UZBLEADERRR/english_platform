@@ -128,7 +128,7 @@ Reply ONLY as JSON:
 {"translation": "...", "example": "...", "image_description": "..."}`;
       
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-1.5-flash',
+        model: 'gemini-3-flash-preview',
         systemInstruction: "Output valid JSON only. No markdown."
       });
 

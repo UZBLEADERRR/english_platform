@@ -178,8 +178,11 @@ chatRouter.post('/send', async (req, res) => {
     const fullInputText = contents.map(c => c.parts.map((p: any) => p.text || '').join('')).join('\n') + (typeof systemInstruction === 'string' ? systemInstruction : '');
     const inputTokens = estimateTokens(fullInputText);
     
+    const hasImage = image_base64 && image_mime_type;
+    const modelName = hasImage ? 'gemini-2.5-flash-image' : 'gemini-3-flash-preview';
+    
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-1.5-flash',
+      model: modelName,
       systemInstruction: systemInstruction as string
     });
     
