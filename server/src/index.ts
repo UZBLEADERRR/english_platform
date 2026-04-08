@@ -18,6 +18,9 @@ import { usersRouter } from './routes/users.js';
 import { referralsRouter } from './routes/referrals.js';
 import { grammarCheckerRouter } from './routes/grammarChecker.js';
 import { uploadRouter } from './routes/upload.js';
+import { songsRouter } from './routes/songs.js';
+import { libraryRouter } from './routes/library.js';
+import { adminRouter } from './routes/admin.js';
 
 dotenv.config();
 
@@ -49,6 +52,9 @@ app.use('/api/users', usersRouter);
 app.use('/api/referrals', referralsRouter);
 app.use('/api/grammar-checker', grammarCheckerRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/songs', songsRouter);
+app.use('/api/library', libraryRouter);
+app.use('/api/admin', adminRouter);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

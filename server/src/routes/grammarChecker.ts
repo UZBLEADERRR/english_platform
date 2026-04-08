@@ -34,7 +34,7 @@ grammarCheckerRouter.post('/check', async (req, res) => {
     }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: [{ role: 'user', parts }],
       config: { 
         systemInstruction: "You are an English grammar checker. Always respond in valid JSON format only. No markdown fences.",

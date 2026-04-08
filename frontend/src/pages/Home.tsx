@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../i18n';
 import { useAppStore } from '../store';
@@ -49,8 +49,17 @@ export default function Home() {
     navigate(specialRoutes[cat.id] || `/category/${cat.id}`);
   };
 
+  // Extra cards that appear on home
+  const extraCards = [
+    { id: 'songs', name: '🎵 Songs', image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&h=300&fit=crop', route: '/songs' },
+    { id: 'library', name: '📚 Library', image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=300&fit=crop', route: '/library' },
+    { id: 'apps', name: '📱 Ilovalar', image: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=300&h=300&fit=crop', route: '/apps' },
+    { id: 'reels', name: '🎬 Reels', image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=300&h=300&fit=crop', route: '/reels' },
+    { id: 'ai-chat', name: '🤖 Virtual Teacher', image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=300&h=300&fit=crop', route: '/ai-chat' },
+  ];
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 page-enter">
       {/* Carousel */}
       {carouselImages.length > 0 && (
         <div className="relative w-full h-44 md:h-64 rounded-2xl overflow-hidden shadow-lg">
@@ -66,13 +75,11 @@ export default function Home() {
               )}
             </div>
           ))}
-          {/* Dots */}
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
             {carouselImages.map((_, i) => (
               <button key={i} onClick={() => setCurrentSlide(i)} className={`w-2 h-2 rounded-full transition-all ${i === currentSlide ? 'bg-white w-6' : 'bg-white/40'}`} />
             ))}
           </div>
-          {/* Arrows */}
           {carouselImages.length > 1 && (
             <>
               <button onClick={() => setCurrentSlide(p => (p - 1 + carouselImages.length) % carouselImages.length)} className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/30 backdrop-blur rounded-full text-white/80 hover:bg-black/50 z-10">
@@ -107,23 +114,18 @@ export default function Home() {
               </span>
             </button>
           ))}
-          {/* Custom Cards */}
-          <button
-            onClick={() => navigate('/reels')}
-            className="relative aspect-square rounded-2xl overflow-hidden group shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
-          >
-            <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=300&h=300&fit=crop" alt="Reels" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-            <span className="absolute bottom-3 left-3 text-white font-bold text-sm md:text-base drop-shadow-lg">Reels</span>
-          </button>
-          <button
-            onClick={() => navigate('/ai-chat')}
-            className="relative aspect-square rounded-2xl overflow-hidden group shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
-          >
-            <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=300&h=300&fit=crop" alt="Virtual Teacher" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-            <span className="absolute bottom-3 left-3 text-white font-bold text-sm md:text-base drop-shadow-lg">Virtual Teacher</span>
-          </button>
+          {/* Extra custom cards */}
+          {extraCards.map(card => (
+            <button
+              key={card.id}
+              onClick={() => navigate(card.route)}
+              className="relative aspect-square rounded-2xl overflow-hidden group shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+            >
+              <img src={card.image} alt={card.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+              <span className="absolute bottom-3 left-3 text-white font-bold text-sm md:text-base drop-shadow-lg">{card.name}</span>
+            </button>
+          ))}
         </div>
       </div>
     </div>

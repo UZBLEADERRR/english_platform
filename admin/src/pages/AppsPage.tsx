@@ -5,11 +5,11 @@ import { Plus, Trash2 } from 'lucide-react';
 export default function AppsPage() {
   const [apps, setApps] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title: '', icon_url: '', app_type: 'code', html_code: '', link_url: '' });
+  const [form, setForm] = useState({ title: '', icon_url: '', app_type: 'code', html_code: '', link_url: '', is_locked: false });
   const load = () => adminApi.getApps().then(setApps).catch(() => {});
   useEffect(() => { load(); }, []);
 
-  const addApp = async () => { await adminApi.addApp(form); setShowForm(false); setForm({ title: '', icon_url: '', app_type: 'code', html_code: '', link_url: '' }); load(); };
+  const addApp = async () => { await adminApi.addApp(form); setShowForm(false); setForm({ title: '', icon_url: '', app_type: 'code', html_code: '', link_url: '', is_locked: false }); load(); };
 
   return (
     <div className="space-y-4">
@@ -30,6 +30,10 @@ export default function AppsPage() {
           ) : (
             <input value={form.link_url} onChange={e => setForm({...form, link_url: e.target.value})} placeholder="Link URL" className="input" />
           )}
+          <label className="flex items-center gap-2 text-white text-sm">
+            <input type="checkbox" checked={form.is_locked} onChange={e => setForm({...form, is_locked: e.target.checked})} className="rounded border-theme bg-surface text-primary" />
+            Bepul userlar uchun qulflash
+          </label>
           <div className="flex gap-2"><button onClick={addApp} className="btn-primary text-xs">Saqlash</button><button onClick={() => setShowForm(false)} className="btn-secondary text-xs">Bekor</button></div>
         </div>
       )}

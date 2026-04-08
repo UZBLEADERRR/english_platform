@@ -23,6 +23,7 @@ CREATE TABLE users (
   ai_messages_reset_at TIMESTAMPTZ DEFAULT NOW(),
   grammar_checks_today INTEGER DEFAULT 0,
   grammar_checks_reset_at TIMESTAMPTZ DEFAULT NOW(),
+  artifacts_created INTEGER DEFAULT 0,
   is_blocked BOOLEAN DEFAULT FALSE,
   referral_code TEXT UNIQUE,
   referred_by TEXT,
@@ -207,6 +208,7 @@ CREATE TABLE apps (
   html_code TEXT,
   link_url TEXT,
   is_admin_app BOOLEAN DEFAULT TRUE, -- true = "Kerakli ilovalar", false = user-created
+  is_locked BOOLEAN DEFAULT FALSE, -- Bepul foydalanuvchilar kira oladimi?
   sort_order INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMPTZ DEFAULT NOW()
@@ -394,6 +396,59 @@ CREATE INDEX idx_payments_status ON payments(status);
 CREATE INDEX idx_chat_sessions_user ON chat_sessions(user_id);
 CREATE INDEX idx_chat_messages_session ON chat_messages(session_id);
 CREATE INDEX idx_user_progress_user ON user_progress(user_id);
+
+-- ============================================
+-- 17. SONGS
+-- ============================================
+CREATE TABLE songs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  artist TEXT,
+  cover_url TEXT,
+  media_type TEXT DEFAULT 'audio', -- 'audio' or 'video'
+  media_url TEXT,
+  lyrics_html TEXT,
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================
+-- 18. LIBRARY (Books & Materials)
+-- ============================================
+CREATE TABLE library (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  author TEXT,
+  cover_url TEXT,
+  pdf_url TEXT,
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================
+-- 19. PRICING CONFIG
+-- ============================================
+CREATE TABLE pricing_config (
+  id TEXT PRIMARY KEY, -- 'free', 'premium', 'ultra'
+  name TEXT NOT NULL,
+  price INTEGER DEFAULT 0,
+  currency TEXT DEFAULT 'so''m',
+  daily_messages INTEGER DEFAULT 3,
+  daily_grammar INTEGER DEFAULT 1,
+  max_artifacts INTEGER DEFAULT 1,
+  features TEXT,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Insert default pricing
+INSERT INTO pricing_config (id, name, price, daily_messages, daily_grammar, max_artifacts, features, sort_order) VALUES
+  ('free', 'Bepul', 0, 3, 1, 1, 'Asosiy chatbot, 1 ta ilova', 0),
+  ('premium', 'Premium', 29000, 20, 5, 1, 'AI Chat 20 msg, Grammar 5x, Kinolar, Comics, Darslar', 1),
+  ('ultra', 'Ultra', 49000, 999999, 999999, 999999, 'CHEKSIZ hammasi', 2)
+ON CONFLICT (id) DO NOTHING;
 
 -- ============================================
 -- FUNCTIONS

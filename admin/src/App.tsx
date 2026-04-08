@@ -14,6 +14,9 @@ import ReelsPage from './pages/ReelsPage';
 import UsersPage from './pages/UsersPage';
 import PaymentsPage from './pages/PaymentsPage';
 import ReferralsPage from './pages/ReferralsPage';
+import SongsPage from './pages/SongsPage';
+import LibraryPage from './pages/LibraryPage';
+import PricingPage from './pages/PricingPage';
 
 function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [password, setPassword] = useState('');
@@ -72,6 +75,9 @@ function AdminLayout() {
     { path: '/users', label: 'Foydalanuvchilar', icon: Users },
     { path: '/payments', label: "To'lovlar", icon: CreditCard },
     { path: '/referrals', label: 'Referral', icon: Share2 },
+    { path: '/songs', label: 'Qo\'shiqlar', icon: Film },
+    { path: '/library', label: 'Kutubxona', icon: BookOpen },
+    { path: '/pricing', label: 'Narxlar', icon: CreditCard },
   ];
 
   const handleLogout = () => { localStorage.removeItem('admin_token'); window.location.reload(); };
@@ -135,6 +141,9 @@ function AdminLayout() {
             <Route path="users" element={<UsersPage />} />
             <Route path="payments" element={<PaymentsPage />} />
             <Route path="referrals" element={<ReferralsPage />} />
+            <Route path="songs" element={<SongsPage />} />
+            <Route path="library" element={<LibraryPage />} />
+            <Route path="pricing" element={<PricingPage />} />
           </Routes>
         </div>
       </main>

@@ -115,6 +115,17 @@ chatRouter.post('/send', async (req, res) => {
   if (user.ai_messages_today >= limit) {
     return res.status(429).json({ error: 'Daily message limit reached', limit, subscription: user.subscription });
   }
+
+  // Check artifact limits (Free limit: 1 time artifact generation)
+  if (is_artifact_mode) {
+    const artifactLimits: Record<string, number> = { free: 1, premium: 1, ultra: 999999 };
+    const artifactLimit = artifactLimits[user.subscription] || 1;
+    if (user.artifacts_created >= artifactLimit) {
+      if (user.subscription === 'free') {
+        return res.status(403).json({ error: 'Artifact limit reached', message: 'Bepul tarifda faqat 1 ta ilova yaratish mumkin. Iltimos Premium sotib oling.' });
+      }
+    }
+  }
   
   // Save user message
   const { data: userMsg } = await supabase
@@ -182,10 +193,15 @@ chatRouter.post('/send', async (req, res) => {
       .single();
     
     // Update counters
-    await supabase.from('users').update({ 
+    const updateData: any = { 
       ai_messages_today: user.ai_messages_today + 1,
       ai_credits_used: user.ai_credits_used + 1
-    }).eq('id', user.id);
+    };
+    if (is_artifact_mode) {
+      updateData.artifacts_created = (user.artifacts_created || 0) + 1;
+    }
+    
+    await supabase.from('users').update(updateData).eq('id', user.id);
     
     // Update session title on first message
     if ((history || []).length <= 2) {

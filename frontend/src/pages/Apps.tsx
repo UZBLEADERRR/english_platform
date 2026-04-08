@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../i18n';
 import api from '../api';
-import { X } from 'lucide-react';
+import { X, Lock } from 'lucide-react';
 import { cn } from '../Layout';
 import { useAppStore } from '../store';
 
 export default function Apps() {
   const t = useTranslation();
+  const navigate = useNavigate();
   const [apps, setApps] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'required' | 'my'>('required');
   const [myApps, setMyApps] = useState<any[]>([]);
@@ -58,9 +60,16 @@ export default function Apps() {
         {displayList.map(app => (
           <div key={app.id} className="relative group flex flex-col items-center gap-2">
             <button onClick={() => {
+              if (app.is_locked && user?.subscription === 'free') {
+                navigate('/pricing');
+                return;
+              }
               if (app.app_type === 'link' && app.link_url) { window.location.href = app.link_url; }
               else { setViewingApp(app); }
-            }} className="flex flex-col items-center gap-2 outline-none w-full">
+            }} className="flex flex-col items-center gap-2 outline-none w-full relative">
+              {app.is_locked && user?.subscription === 'free' && (
+                <div className="absolute top-0 right-0 p-1 bg-yellow-500 rounded-full shadow-lg z-10"><Lock className="w-3 h-3 text-white" /></div>
+              )}
               <div className="w-16 h-16 rounded-2xl overflow-hidden bg-white/5 shadow-md group-hover:shadow-xl group-hover:scale-105 transition-all flex shrink-0 items-center justify-center relative">
                 {app.app_type === 'code' && app.html_code ? (
                   <div className="w-full h-full pointer-events-none relative scale-[0.2] origin-top-left" style={{ width: '500%', height: '500%' }}>

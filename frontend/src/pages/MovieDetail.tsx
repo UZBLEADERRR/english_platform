@@ -76,14 +76,22 @@ export default function MovieDetail() {
   };
 
   const toggleFullscreen = () => {
-    if (playerContainerRef.current) {
-      if (!document.fullscreenElement) {
-        playerContainerRef.current.requestFullscreen?.();
-        setIsFullscreen(true);
-      } else {
-        document.exitFullscreen?.();
-        setIsFullscreen(false);
+    const el = playerContainerRef.current as any;
+    if (!el) return;
+    const doc = document as any;
+    if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      else if (videoRef.current) {
+        // iOS Safari fallback: fullscreen on video element
+        const v = videoRef.current as any;
+        if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
       }
+      setIsFullscreen(true);
+    } else {
+      if (doc.exitFullscreen) doc.exitFullscreen();
+      else if (doc.webkitExitFullscreen) doc.webkitExitFullscreen();
+      setIsFullscreen(false);
     }
   };
 
@@ -194,12 +202,35 @@ export default function MovieDetail() {
 
         <div className="space-y-3">
           <h1 className="text-2xl font-bold text-main">{movie.title}</h1>
-          <p className="text-muted leading-relaxed">{movie.description}</p>
+          
+          {/* Movie info webview (if exists) */}  
+          {movie.info_html ? (
+            <div className="rounded-2xl overflow-hidden border border-theme shadow-md">
+              <iframe 
+                srcDoc={movie.info_html} 
+                className="w-full border-none bg-white"
+                style={{ minHeight: '200px' }}
+                sandbox="allow-scripts allow-same-origin"
+                onLoad={(e) => {
+                  try {
+                    const iframe = e.currentTarget;
+                    if (iframe.contentDocument) {
+                      iframe.style.height = iframe.contentDocument.documentElement.scrollHeight + 'px';
+                    }
+                  } catch(err) {}
+                }}
+              />
+            </div>
+          ) : (
+            <p className="text-muted leading-relaxed">{movie.description}</p>
+          )}
 
           {canWatch ? (
-            <button onClick={() => setShowPlayer(true)} className="w-full py-3.5 bg-gradient-to-r from-primary to-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-primary/30 transition-all">
-              <Play className="w-5 h-5" /> Ko'rish
-            </button>
+            !showPlayer && (
+              <button onClick={() => setShowPlayer(true)} className="w-full py-3.5 bg-gradient-to-r from-primary to-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-primary/30 transition-all">
+                <Play className="w-5 h-5" /> ▶ Kinoni ko'rish
+              </button>
+            )
           ) : (
             <div className="space-y-3">
               <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl text-center">

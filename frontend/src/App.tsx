@@ -15,6 +15,8 @@ import ComicReader from './pages/ComicReader';
 import GrammarChecker from './pages/GrammarChecker';
 import Tips from './pages/Tips';
 import Pricing from './pages/Pricing';
+import Songs from './pages/Songs';
+import Library from './pages/Library';
 
 export default function App() {
   return (
@@ -36,6 +38,8 @@ export default function App() {
           <Route path="grammar-checker" element={<GrammarChecker />} />
           <Route path="tips" element={<Tips />} />
           <Route path="pricing" element={<Pricing />} />
+          <Route path="songs" element={<Songs />} />
+          <Route path="library" element={<Library />} />
         </Route>
       </Routes>
     </BrowserRouter>
