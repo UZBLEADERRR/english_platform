@@ -155,10 +155,15 @@ chatRouter.post('/send', async (req, res) => {
       .order('created_at')
       .limit(20);
     
-    const chatHistory = (history || []).slice(0, -1).map(msg => ({
+    let chatHistory = (history || []).slice(0, -1).map(msg => ({
       role: msg.role === 'user' ? 'user' as const : 'model' as const,
       parts: [{ text: msg.text }]
     }));
+    
+    // Google GenAI requires history to start with a 'user' message!
+    if (chatHistory.length > 0 && chatHistory[0].role === 'model') {
+      chatHistory.unshift({ role: 'user', parts: [{ text: 'Assalomu alaykum' }] });
+    }
     
     const systemInstruction = is_artifact_mode
       ? "Sen zo'r dasturchisan. Foydalanuvchining so'roviga asosan bitta web ilova yoki o'yin (interaktiv UI) yaratib berasan. FAQATGINA bitta ```html blokida HTML kodingni ber. Barcha CSS(Tailwind orqali) va JS yozilgan bo'lsin. Mobile-responsive bo'lishi SHART. Hech qanday tushuntirish matni YOZMA!! Oldin eslatma ham yozma. Boshlanishi va tugashi shunday bo'lsin: ```html <html>...</html> ```"

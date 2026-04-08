@@ -5,8 +5,7 @@ import api from '../api';
 import { ChevronLeft, ChevronRight, BookOpen, GraduationCap, Popcorn, Wrench } from 'lucide-react';
 
 const defaultCarousel = [
-  { id: '1', image_url: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=800&h=400&fit=crop', title: 'Master English Today', subtitle: 'Start your journey' },
-  { id: '2', image_url: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=400&fit=crop', title: 'Learn with Fun', subtitle: 'Interactive lessons' },
+  { id: '1', image_url: 'https://my-icon-2004.b-cdn.net/tuqum.jpg', title: '', subtitle: '' }
 ];
 
 const fallbackCategories = [
