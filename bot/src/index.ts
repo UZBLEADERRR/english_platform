@@ -76,16 +76,29 @@ bot.on('message:text', async (ctx, next) => {
   const { data: user } = await supabase.from('users').select('*').eq('telegram_id', telegramId).single();
   if (!user || !user.bot_state) return next();
 
+  console.log(`[Bot] User ${telegramId} state: ${user.bot_state}, message: ${ctx.message.text}`);
+
   if (user.bot_state === 'WAITING_AGE') {
     const age = parseInt(ctx.message.text);
     if (isNaN(age)) return ctx.reply('Iltimos, yoshingizni raqamda kiriting:');
     
-    await supabase.from('users').update({ age, bot_state: 'WAITING_GENDER' }).eq('id', user.id);
+    console.log(`[Bot] Saving age ${age} for user ${telegramId}`);
+    const { error } = await supabase.from('users').update({ 
+      age, 
+      bot_state: 'WAITING_GENDER' 
+    }).eq('id', user.id);
+    
+    if (error) {
+      console.error('[Bot] Supabase update age error:', error);
+      return ctx.reply('Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.');
+    }
+
     const keyboard = new InlineKeyboard().text('Erkak', 'gender_m').text('Ayol', 'gender_f');
     return ctx.reply('Iltimos, jinsingizni tanlang:', { reply_markup: keyboard });
   }
 
   if (user.bot_state === 'WAITING_ADDRESS') {
+    console.log(`[Bot] Saving address for user ${telegramId}`);
     await supabase.from('users').update({ address: ctx.message.text, bot_state: null }).eq('id', user.id);
     
     const keyboard = new InlineKeyboard()

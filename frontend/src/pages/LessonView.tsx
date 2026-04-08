@@ -133,12 +133,12 @@ export default function LessonView() {
         }
 
         return (
-          <div className="-mx-4 md:mx-0 overflow-hidden border-y md:border md:rounded-2xl border-theme shadow-md">
+          <div className="relative left-1/2 right-1/2 -mx-[50vw] w-screen overflow-hidden border-y border-theme shadow-md">
             <iframe
               ref={iframeRef}
               srcDoc={finalHtml}
               className="w-full border-none bg-white"
-              style={{ minHeight: '200px' }}
+              style={{ minHeight: '80vh', height: '100%' }}
               sandbox="allow-scripts allow-same-origin allow-forms"
               onLoad={autoResize}
             />

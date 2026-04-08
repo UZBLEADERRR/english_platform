@@ -137,18 +137,25 @@ export default function MovieDetail() {
   };
 
   const toggleFullscreen = () => {
-    const container = playerContainerRef.current as any;
-    const video = videoRef.current as any;
+    const container = playerContainerRef.current;
+    const video = videoRef.current;
     if (!container || !video) return;
 
     const doc = document as any;
-    if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
-      if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
-      else if (container.requestFullscreen) { container.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {}); }
-      else if (container.webkitRequestFullscreen) { container.webkitRequestFullscreen(); setIsFullscreen(true); }
+    const isFS = doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement;
+
+    if (!isFS) {
+      if (container.requestFullscreen) container.requestFullscreen().catch(() => video.requestFullscreen?.());
+      else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen();
+      else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
+      else if (container.msRequestFullscreen) container.msRequestFullscreen();
+      else if (video.requestFullscreen) video.requestFullscreen();
+      setIsFullscreen(true);
     } else {
       if (doc.exitFullscreen) doc.exitFullscreen();
       else if (doc.webkitExitFullscreen) doc.webkitExitFullscreen();
+      else if (doc.mozCancelFullScreen) doc.mozCancelFullScreen();
+      else if (doc.msExitFullscreen) doc.msExitFullscreen();
       setIsFullscreen(false);
     }
   };
