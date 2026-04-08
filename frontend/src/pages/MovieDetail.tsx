@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
 import api from '../api';
-import { ArrowLeft, Play, Lock, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward, Pause, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Play, Lock, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward, Pause, ExternalLink, RotateCcw, Copy, Check } from 'lucide-react';
 import Hls from 'hls.js';
 import { cn } from '../utils';
 
@@ -29,6 +29,8 @@ export default function MovieDetail() {
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [hlsInstance, setHlsInstance] = useState<Hls | null>(null);
   const [isFakeFullscreen, setIsFakeFullscreen] = useState(false);
+  const [isRotated, setIsRotated] = useState(false);
+  const [showCopyFeedback, setShowCopyFeedback] = useState(false);
   const { setIsNavbarHidden } = useAppStore();
 
   const controlsTimeoutRef = useRef<any>(null);
@@ -167,6 +169,15 @@ export default function MovieDetail() {
     const newState = !isFakeFullscreen;
     setIsFakeFullscreen(newState);
     setIsNavbarHidden(newState);
+    if (!newState) setIsRotated(false);
+  };
+
+  const copyLink = () => {
+    if (!movie?.video_url) return;
+    navigator.clipboard.writeText(movie.video_url).then(() => {
+      setShowCopyFeedback(true);
+      setTimeout(() => setShowCopyFeedback(false), 2000);
+    });
   };
 
   const formatTime = (s: number) => {
@@ -209,7 +220,7 @@ export default function MovieDetail() {
         <ArrowLeft className="w-5 h-5" /><span className="font-medium">Orqaga</span>
       </button>
 
-      <div className={cn("max-w-4xl mx-auto space-y-4 px-4 pb-12", isFakeFullscreen && "fixed inset-0 z-[500] bg-black max-w-none p-0 pb-0")}>
+      <div className={cn("max-w-4xl mx-auto space-y-4 px-4 pb-12", isFakeFullscreen && "fixed inset-0 z-[500] bg-black max-w-none p-0 pb-0 flex items-center justify-center")}>
         {isAgeRestricted ? (
           <div className="relative aspect-[2/3] max-h-[400px] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl mx-auto ring-1 ring-white/10 flex items-center justify-center bg-surface">
             <div className="absolute inset-0 bg-red-900/20" />
@@ -220,7 +231,17 @@ export default function MovieDetail() {
             </div>
           </div>
         ) : showPlayer && canWatch ? (
-          <div ref={playerContainerRef} className={cn("relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-xl cursor-pointer group", isFakeFullscreen && "h-full rounded-none")} onClick={resetControlsTimer} onMouseMove={resetControlsTimer}>
+          <div 
+            ref={playerContainerRef} 
+            className={cn(
+              "relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-xl cursor-pointer group", 
+              isFakeFullscreen && !isRotated && "h-full rounded-none",
+              isRotated && "fixed inset-0 w-[100vh] h-[100vw] rotate-90 origin-center z-[600]"
+            )} 
+            style={isRotated ? { left: '50%', top: '50%', transform: 'translate(-50%, -50%) rotate(90deg)' } : {}}
+            onClick={resetControlsTimer} 
+            onMouseMove={resetControlsTimer}
+          >
             {isDirectVideo ? (
               <>
                 <video
@@ -293,8 +314,14 @@ export default function MovieDetail() {
                           </div>
                         )}
 
-                        <button onClick={(e) => { e.stopPropagation(); skip(-10); }} className="text-white hover:text-primary transition-colors hidden sm:block"><SkipBack className="w-5 h-5" /></button>
                         <button onClick={(e) => { e.stopPropagation(); skip(10); }} className="text-white hover:text-primary transition-colors hidden sm:block"><SkipForward className="w-5 h-5" /></button>
+                        
+                        {isFakeFullscreen && (
+                          <button onClick={(e) => { e.stopPropagation(); setIsRotated(!isRotated); }} className={cn("text-white hover:text-primary transition-colors", isRotated && "text-primary")}>
+                            <RotateCcw className="w-5 h-5" />
+                          </button>
+                        )}
+
                         <button onClick={(e) => { e.stopPropagation(); toggleFakeFullscreen(); }} className={cn("text-white hover:text-primary transition-colors", isFakeFullscreen && "text-primary")}>
                            <Maximize className="w-5 h-5" />
                         </button>
@@ -323,11 +350,20 @@ export default function MovieDetail() {
           <h1 className="text-3xl font-extrabold text-main">{movie.title}</h1>
           
           <div className="flex flex-wrap gap-2">
+            <a 
+              href={movie.video_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 bg-primary/20 border border-primary/30 rounded-xl text-primary text-sm font-bold hover:bg-primary/30 transition-colors flex items-center gap-2"
+            >
+              <ExternalLink className="w-4 h-4" /> Brauzerda ochish
+            </a>
             <button 
-              onClick={() => window.open(movie.video_url, '_blank')}
+              onClick={copyLink}
               className="px-4 py-2 bg-surface border border-theme rounded-xl text-main text-sm font-bold hover:bg-elevated transition-colors flex items-center gap-2"
             >
-              <ExternalLink className="w-4 h-4" /> Tashqi brauzerda ochish
+              {showCopyFeedback ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />} 
+              {showCopyFeedback ? 'Nusxalandi!' : 'Havolani nusxalash'}
             </button>
           </div>
           

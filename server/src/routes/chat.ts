@@ -175,18 +175,19 @@ chatRouter.post('/send', async (req, res) => {
     }
     
     const contents = [...chatHistory, { role: 'user' as const, parts: currentParts }];
-    
-    // Build full input text for token counting
-    const fullInputText = contents.map(c => c.parts.map((p: any) => p.text || '').join('')).join('\n') + systemInstruction;
+    const fullInputText = contents.map(c => c.parts.map((p: any) => p.text || '').join('')).join('\n') + (typeof systemInstruction === 'string' ? systemInstruction : '');
     const inputTokens = estimateTokens(fullInputText);
     
-    const response = await ai.models.generateContent({
+    const model = ai.getGenerativeModel({ 
       model: 'gemini-1.5-flash',
-      contents,
-      config: { systemInstruction, maxOutputTokens: 8192 }
+      systemInstruction
     });
     
-    const responseText = response.text || 'Kechirasiz, javob berib bo\'lmadi.';
+    const result = await model.generateContent({
+      contents,
+    });
+    
+    const responseText = result.response.text() || 'Kechirasiz, javob berib bo\'lmadi.';
     const outputTokens = estimateTokens(responseText);
     
     // Save token usage
@@ -235,13 +236,15 @@ chatRouter.post('/send', async (req, res) => {
       tokens: { input: inputTokens, output: outputTokens }
     });
   } catch (error: any) {
-    console.error('AI Error:', error);
-    const errorMsg = await supabase
+    console.error('AI ERROR DETAILS:', error);
+    const errorMessage = error.message || 'Unknown AI error';
+    
+    const { data: errorMsg } = await supabase
       .from('chat_messages')
-      .insert({ session_id, role: 'model', text: 'Xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.' })
+      .insert({ session_id, role: 'model', text: `Xatolik yuz berdi: ${errorMessage}. Iltimos qaytadan urinib ko'ring.` })
       .select()
       .single();
-    res.status(500).json({ error: error.message, modelMessage: errorMsg.data });
+    res.status(500).json({ error: errorMessage, modelMessage: errorMsg });
   }
 });
 
