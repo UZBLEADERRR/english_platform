@@ -79,7 +79,7 @@ export default function Layout() {
   ];
 
   // Specific paths where we don't want to show the navbar
-  const hideNavbarRegex = /^\/(movies|reels|apps|comics|library)\/.+|^\/(reels|ai-chat)$/i;
+  const hideNavbarRegex = /^\/(movies|apps|comics|library)\/.+/i;
   const hideNavbar = hideNavbarRegex.test(location.pathname);
 
   return (
