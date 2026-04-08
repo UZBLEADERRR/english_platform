@@ -5,11 +5,24 @@ import { useAppStore } from '../store';
 import api from '../api';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+const defaultCategories = [
+  { id: 'grammar', custom_name: 'Grammar', image_url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=300&h=300&fit=crop' },
+  { id: 'reading', custom_name: 'Reading', image_url: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=300&fit=crop' },
+  { id: 'writing', custom_name: 'Writing', image_url: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=300&h=300&fit=crop' },
+  { id: 'listening', custom_name: 'Listening', image_url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop' },
+  { id: 'speaking', custom_name: 'Speaking', image_url: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=300&h=300&fit=crop' },
+  { id: 'vocabulary', custom_name: 'Vocabulary', image_url: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=300&h=300&fit=crop' },
+  { id: 'movies', custom_name: 'Movies', image_url: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300&h=300&fit=crop' },
+  { id: 'comics', custom_name: 'Comics', image_url: 'https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?w=300&h=300&fit=crop' },
+  { id: 'grammar_checker', custom_name: 'Grammar Checker', image_url: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=300&h=300&fit=crop' },
+  { id: 'tips', custom_name: 'Tips', image_url: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=300&h=300&fit=crop' },
+];
+
 export default function Home() {
   const t = useTranslation();
   const navigate = useNavigate();
   const [carouselImages, setCarouselImages] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>(defaultCategories);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
@@ -19,20 +32,9 @@ export default function Home() {
         { id: '2', image_url: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=400&fit=crop', title: 'Learn with Fun', subtitle: 'Interactive lessons' },
       ]);
     });
-    api.getCategories().then(setCategories).catch(() => {
-      setCategories([
-        { id: 'grammar', custom_name: 'Grammar', image_url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=300&h=300&fit=crop' },
-        { id: 'reading', custom_name: 'Reading', image_url: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=300&fit=crop' },
-        { id: 'writing', custom_name: 'Writing', image_url: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=300&h=300&fit=crop' },
-        { id: 'listening', custom_name: 'Listening', image_url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop' },
-        { id: 'speaking', custom_name: 'Speaking', image_url: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=300&h=300&fit=crop' },
-        { id: 'vocabulary', custom_name: 'Vocabulary', image_url: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=300&h=300&fit=crop' },
-        { id: 'movies', custom_name: 'Movies', image_url: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=300&h=300&fit=crop' },
-        { id: 'comics', custom_name: 'Comics', image_url: 'https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?w=300&h=300&fit=crop' },
-        { id: 'grammar_checker', custom_name: 'Grammar Checker', image_url: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=300&h=300&fit=crop' },
-        { id: 'tips', custom_name: 'Tips', image_url: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=300&h=300&fit=crop' },
-      ]);
-    });
+    api.getCategories().then(data => {
+      if(data && data.length > 0) setCategories(data);
+    }).catch(() => {});
   }, []);
 
   // Auto-slide

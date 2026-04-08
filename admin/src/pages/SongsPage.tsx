@@ -7,6 +7,7 @@ export default function SongsPage() {
   const [form, setForm] = useState({ title: '', artist: '', cover_url: '', media_type: 'audio', media_url: '', lyrics_html: '' });
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const load = () => adminApi.get('/api/songs/admin/all').then(setSongs).catch(() => {});
   useEffect(() => { load(); }, []);
@@ -27,6 +28,17 @@ export default function SongsPage() {
     setEditId(s.id); setShowForm(true);
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const res = await adminApi.uploadFile(file);
+      setForm({...form, media_url: res.url});
+    } catch(err: any) { alert(err.message); }
+    finally { setUploading(false); }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -42,7 +54,13 @@ export default function SongsPage() {
             <option value="audio">Audio</option>
             <option value="video">Video</option>
           </select>
-          <input value={form.media_url} onChange={e => setForm({...form, media_url: e.target.value})} placeholder="Audio/Video URL" className="input" />
+          <div className="flex gap-2">
+            <input value={form.media_url} onChange={e => setForm({...form, media_url: e.target.value})} placeholder="Audio/Video URL yoki yuklang" className="input flex-1" />
+            <label className="btn-secondary text-xs flex items-center justify-center cursor-pointer min-w-[120px]">
+              {uploading ? '⏳ Kuting...' : 'Fayl Yuklash'}
+              <input type="file" accept="audio/*,video/*" className="hidden" onChange={handleFileUpload} disabled={uploading} />
+            </label>
+          </div>
           <textarea value={form.lyrics_html} onChange={e => setForm({...form, lyrics_html: e.target.value})} placeholder="Lyrics HTML kodi (Webview uchun)" className="input min-h-[120px]" />
           <button onClick={save} className="btn-primary w-full">{editId ? 'Saqlash' : 'Qo\'shish'}</button>
         </div>

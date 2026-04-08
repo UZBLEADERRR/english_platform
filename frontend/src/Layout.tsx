@@ -78,9 +78,14 @@ export default function Layout() {
     { path: '/profile', label: t('profile'), icon: User },
   ];
 
+  // Specific paths where we don't want to show the navbar
+  const hideNavbarRegex = /^\/(movies|reels|apps|comics|library)\/.+|^\/(reels|ai-chat)$/i;
+  const hideNavbar = hideNavbarRegex.test(location.pathname);
+
   return (
     <div className="flex flex-col min-h-[100dvh]">
       {/* Top Navbar */}
+      {!hideNavbar && (
       <nav className="fixed top-2 left-4 right-4 z-[100] bg-surface/90 backdrop-blur-xl border border-theme rounded-full drop-shadow-xl">
         <div className="max-w-lg mx-auto flex items-center justify-around h-12">
           {navItems.map((item) => {
@@ -102,11 +107,12 @@ export default function Layout() {
           })}
         </div>
       </nav>
+      )}
 
       {/* Main Content */}
       <main 
         key={location.pathname}
-        className="flex-1 w-full mx-auto flex flex-col relative max-w-7xl px-4 pt-20 pb-4 page-enter"
+        className={cn("flex-1 w-full mx-auto flex flex-col relative max-w-7xl px-4 pb-4 page-enter", hideNavbar ? "pt-4" : "pt-20")}
       >
         <Outlet />
       </main>

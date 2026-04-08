@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
 import api from '../api';
 import { ArrowLeft, Play, Lock, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward, Pause } from 'lucide-react';
+import Hls from 'hls.js';
 
 export default function MovieDetail() {
   const { id } = useParams();
@@ -29,6 +30,28 @@ export default function MovieDetail() {
       setMovie({ id, title: 'Sample Movie', description: 'A great movie for learning English', poster_url: 'https://images.unsplash.com/photo-1635805737707-575885ab0820?w=800&h=1200&fit=crop', is_locked: true, is_18plus: false });
     });
   }, [id]);
+
+  useEffect(() => {
+    if (!videoRef.current || !showPlayer || !movie?.video_url) return;
+    const url = movie.video_url;
+    let hls: Hls | null = null;
+
+    if (url.includes('.m3u8')) {
+      if (Hls.isSupported()) {
+        hls = new Hls({ autoStartLoad: true, maxMaxBufferLength: 30 });
+        hls.loadSource(url);
+        hls.attachMedia(videoRef.current);
+      } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
+        videoRef.current.src = url; // Safari native HLS
+      }
+    } else {
+      videoRef.current.src = url; // Standard mp4/webm
+    }
+
+    return () => {
+      if (hls) hls.destroy();
+    };
+  }, [movie?.video_url, showPlayer]);
 
   // Auto-hide controls
   const resetControlsTimer = () => {
@@ -132,7 +155,6 @@ export default function MovieDetail() {
               <>
                 <video
                   ref={videoRef}
-                  src={url}
                   className="w-full h-full object-contain"
                   onTimeUpdate={() => setCurrentTime(videoRef.current?.currentTime || 0)}
                   onLoadedMetadata={() => setDuration(videoRef.current?.duration || 0)}

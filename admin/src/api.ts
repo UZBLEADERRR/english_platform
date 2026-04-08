@@ -112,6 +112,30 @@ class AdminApi {
   
   // Upload
   uploadImage(base64: string, filename: string) { return this.post('/api/upload/image', { base64, filename }); }
+  
+  async uploadFile(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_URL}/api/upload/file`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${this.getToken()}` },
+      body: formData
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || `HTTP ${res.status}`); }
+    return res.json();
+  }
+
+  async uploadVideo(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_URL}/api/upload/video`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${this.getToken()}` },
+      body: formData
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || `HTTP ${res.status}`); }
+    return res.json();
+  }
 }
 
 export const adminApi = new AdminApi();

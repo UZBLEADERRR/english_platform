@@ -99,14 +99,25 @@ export default function Reels() {
         <div className="relative w-full max-w-md h-full flex flex-col overflow-hidden z-10" style={{ minHeight: 'calc(100dvh - 100px)' }}>
           {/* Current card */}
           <div className="absolute inset-0 w-full h-full page-enter" key={currentIndex}>
-            <img 
-              src={words[currentIndex]?.image_url} 
-              alt="" 
-              className="absolute inset-0 w-full h-full object-cover" 
-              referrerPolicy="no-referrer" 
-              crossOrigin="anonymous"
-              onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80')} 
-            />
+            {words[currentIndex]?.image_url?.match(/\.(mp4|webm|m3u8)/i) ? (
+              <video 
+                src={words[currentIndex]?.image_url} 
+                className="absolute inset-0 w-full h-full object-cover" 
+                autoPlay={true}
+                loop={true}
+                muted={false}
+                playsInline={true}
+              />
+            ) : (
+              <img 
+                src={words[currentIndex]?.image_url} 
+                alt="" 
+                className="absolute inset-0 w-full h-full object-cover" 
+                referrerPolicy="no-referrer" 
+                crossOrigin="anonymous"
+                onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80')} 
+              />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/60" />
             
             {(() => {

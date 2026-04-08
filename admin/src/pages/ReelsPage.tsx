@@ -11,6 +11,7 @@ export default function ReelsPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [editingWord, setEditingWord] = useState<string | null>(null);
   const [editImageUrl, setEditImageUrl] = useState('');
+  const [uploadingReel, setUploadingReel] = useState(false);
   
   const load = () => adminApi.getReels().then(setData).catch(() => {});
   useEffect(() => { load(); }, []);
@@ -27,6 +28,18 @@ export default function ReelsPage() {
       load(); 
     } catch(e:any) { alert(e.message); }
     setIsGenerating(false);
+  };
+
+  const handleReelUpload = async (catId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingReel(true);
+    try {
+      const res = await adminApi.uploadFile(file);
+      await adminApi.addReelWord({ category_id: catId, word: file.name.split('.')[0] + '||||', image_url: res.url });
+      load();
+    } catch(err: any) { alert(err.message); }
+    finally { setUploadingReel(false); }
   };
 
   const startEditWord = (word: any) => {
@@ -59,6 +72,10 @@ export default function ReelsPage() {
           <div className="flex items-center justify-between">
             <h3 className="text-white font-bold">{cat.name}</h3>
             <div className="flex gap-2">
+              <label className="btn-primary text-xs cursor-pointer flex items-center justify-center">
+                {uploadingReel ? '⏳ Kuting...' : 'Video/Media Yuklash'}
+                <input type="file" accept="video/*,image/*" className="hidden" onChange={(e) => handleReelUpload(cat.id, e)} disabled={uploadingReel} />
+              </label>
               <button onClick={() => setShowWordForm(showWordForm === cat.id ? '' : cat.id)} className="btn-secondary text-xs"><Plus className="w-3 h-3 inline" /> So'z</button>
               <button onClick={() => { if(confirm("O'chirish?")) adminApi.deleteReelCategory(cat.id).then(load); }} className="btn-danger text-xs"><Trash2 className="w-3 h-3" /></button>
             </div>

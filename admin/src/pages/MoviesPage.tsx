@@ -9,8 +9,21 @@ export default function MoviesPage() {
   const [showCatForm, setShowCatForm] = useState(false);
   const [catName, setCatName] = useState('');
   const [form, setForm] = useState({ title: '', description: '', poster_url: '', video_url: '', category_id: '', is_18plus: false, is_locked: false });
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  
   const load = () => { adminApi.getMovies().then(setMovies).catch(() => {}); adminApi.getMovieCategories().then(setCategories).catch(() => {}); };
   useEffect(() => { load(); }, []);
+
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingVideo(true);
+    try {
+      const res = await adminApi.uploadVideo(file);
+      setForm({...form, video_url: res.url}); // can be hls or iframe
+    } catch(e: any) { alert(e.message); }
+    finally { setUploadingVideo(false); }
+  };
 
   const addMovie = async () => { await adminApi.addMovie(form); setShowForm(false); setForm({ title: '', description: '', poster_url: '', video_url: '', category_id: '', is_18plus: false, is_locked: false }); load(); };
   const deleteMovie = async (id: string) => { if(!confirm('O\'chirish?')) return; await adminApi.deleteMovie(id); load(); };
@@ -37,7 +50,15 @@ export default function MoviesPage() {
           <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="Nomi" className="input" />
           <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Tavsif" className="input min-h-[60px]" />
           <input value={form.poster_url} onChange={e => setForm({...form, poster_url: e.target.value})} placeholder="Poster URL" className="input" />
-          <input value={form.video_url} onChange={e => setForm({...form, video_url: e.target.value})} placeholder="Video URL (bunny.net)" className="input" />
+          
+          <div className="flex gap-2">
+            <input value={form.video_url} onChange={e => setForm({...form, video_url: e.target.value})} placeholder="Video URL (yoki fayl yuklang)" className="input flex-1" />
+            <label className="btn-secondary text-xs flex items-center justify-center cursor-pointer min-w-[100px]">
+              {uploadingVideo ? '⏳ Kuting...' : 'Video Yuklash'}
+              <input type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} disabled={uploadingVideo} />
+            </label>
+          </div>
+
           <select value={form.category_id} onChange={e => setForm({...form, category_id: e.target.value})} className="input">
             <option value="">Kategoriya tanlang</option>
             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
