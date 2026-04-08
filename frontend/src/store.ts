@@ -12,6 +12,8 @@ export interface User {
   first_name?: string;
   last_name?: string;
   avatar_url?: string;
+  age?: number;
+  gender?: string;
   role: string;
   subscription: Subscription;
   subscription_expires_at?: string;

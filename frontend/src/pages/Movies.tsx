@@ -77,21 +77,30 @@ export default function Movies() {
         ))}
       </div>
 
-      {/* Movies Grid */}
       <div className="grid grid-cols-3 gap-3">
-        {filteredMovies.map(movie => (
-          <button key={movie.id} onClick={() => navigate(`/movie/${movie.id}`)} className="relative rounded-xl overflow-hidden group aspect-[2/3]">
-            <img src={movie.poster_url} alt={movie.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-            <span className="absolute bottom-2 left-2 right-2 text-white text-xs font-bold line-clamp-2">{movie.title}</span>
-            {movie.is_locked && (
-              <div className="absolute top-2 right-2 p-1.5 bg-black/50 rounded-full"><Lock className="w-3 h-3 text-yellow-400" /></div>
-            )}
-            {movie.is_18plus && (
-              <span className="absolute top-2 left-2 px-1.5 py-0.5 bg-red-500 rounded text-[10px] font-bold text-white">18+</span>
-            )}
-          </button>
-        ))}
+        {filteredMovies.map(movie => {
+          const isAgeRestricted = movie.is_18plus && user?.age && user.age < 18;
+          return (
+            <button key={movie.id} onClick={() => navigate(`/movie/${movie.id}`)} className="relative rounded-xl overflow-hidden group aspect-[2/3]">
+              <img src={movie.poster_url} alt={movie.title} className={cn("w-full h-full object-cover group-hover:scale-105 transition-transform duration-500", isAgeRestricted && "blur-xl grayscale")} referrerPolicy="no-referrer" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+              {isAgeRestricted ? (
+                <div className="absolute inset-0 flex flex-col justify-center items-center p-2 text-center text-red-500">
+                  <Lock className="w-6 h-6 drop-shadow-md" />
+                  <span className="text-[10px] font-bold mt-1 text-white uppercase drop-shadow-md leading-tight">YOSHDAN CHEKLOV</span>
+                </div>
+              ) : (
+                <span className="absolute bottom-2 left-2 right-2 text-white text-xs font-bold line-clamp-2">{movie.title}</span>
+              )}
+              {movie.is_locked && !isAgeRestricted && (
+                <div className="absolute top-2 right-2 p-1.5 bg-black/50 rounded-full"><Lock className="w-3 h-3 text-yellow-400" /></div>
+              )}
+              {movie.is_18plus && !isAgeRestricted && (
+                <span className="absolute top-2 left-2 px-1.5 py-0.5 bg-red-500 rounded text-[10px] font-bold text-white">18+</span>
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

@@ -88,10 +88,10 @@ usersRouter.put('/profile', async (req, res) => {
   const telegramId = req.headers['x-telegram-id'];
   if (!telegramId) return res.status(401).json({ error: 'No telegram ID' });
   
-  const { first_name, avatar_url } = req.body;
+  const { first_name, avatar_url, age, gender } = req.body;
   const { data, error } = await supabase
     .from('users')
-    .update({ first_name, avatar_url })
+    .update({ first_name, avatar_url, age, gender })
     .eq('telegram_id', parseInt(telegramId as string))
     .select()
     .single();

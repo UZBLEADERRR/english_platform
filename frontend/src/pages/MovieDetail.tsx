@@ -170,7 +170,10 @@ export default function MovieDetail() {
 
   if (!movie) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
 
-  const canWatch = !movie.is_locked || user?.subscription === 'premium' || user?.subscription === 'ultra';
+  const canWatch = (!movie.is_locked || user?.subscription === 'premium' || user?.subscription === 'ultra');
+  const isUnderage = user?.age && user.age < 18;
+  const isAgeRestricted = movie.is_18plus && isUnderage;
+
   const url = movie.video_url || '';
   const isDirectVideo = url.includes('.mp4') || url.includes('.webm') || url.includes('.m3u8');
   let embedUrl = url;
@@ -191,7 +194,16 @@ export default function MovieDetail() {
       </button>
 
       <div className="max-w-4xl mx-auto space-y-4 px-4 pb-12">
-        {showPlayer && canWatch ? (
+        {isAgeRestricted ? (
+          <div className="relative aspect-[2/3] max-h-[400px] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl mx-auto ring-1 ring-white/10 flex items-center justify-center bg-surface">
+            <div className="absolute inset-0 bg-red-900/20" />
+            <div className="z-10 text-center p-6 bg-red-500/10 border border-red-500/30 rounded-3xl backdrop-blur-md max-w-[80%]">
+              <Lock className="w-12 h-12 mx-auto mb-3 text-red-500" />
+              <p className="font-extrabold text-main text-xl">18+ Kontent</p>
+              <p className="text-sm text-white/80 mt-2">Sizning yoshingiz ushbu filmni ko'rish uchun yetarli emas.</p>
+            </div>
+          </div>
+        ) : showPlayer && canWatch ? (
           <div ref={playerContainerRef} className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-xl cursor-pointer group" onClick={resetControlsTimer} onMouseMove={resetControlsTimer}>
             {isDirectVideo ? (
               <>
@@ -303,7 +315,15 @@ export default function MovieDetail() {
             <p className="text-[#a1a1aa] leading-relaxed text-[15px]">{movie.description}</p>
           )}
 
-          {canWatch ? (
+          {isAgeRestricted ? (
+            <div className="space-y-3 mt-4">
+              <div className="p-5 bg-red-500/10 border border-red-500/30 rounded-2xl text-center">
+                <Lock className="w-10 h-10 mx-auto mb-3 text-red-500" />
+                <p className="font-extrabold text-main text-lg">Taqiqlangan</p>
+                <p className="text-sm text-muted mt-1.5 px-4">Ushbu film faqat 18 yoshdan oshganlar uchun mo'ljallangan.</p>
+              </div>
+            </div>
+          ) : canWatch ? (
             !showPlayer && (
               <button onClick={() => setShowPlayer(true)} className="w-full py-4 mt-2 bg-gradient-to-r from-primary to-blue-600 text-white font-bold text-lg rounded-2xl flex items-center justify-center gap-2.5 shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-1 transition-all active:scale-[0.98]">
                 <Play className="w-6 h-6 fill-white" /> Kinoni ko'rish
