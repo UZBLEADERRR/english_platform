@@ -38,13 +38,13 @@ grammarCheckerRouter.post('/check', async (req, res) => {
       systemInstruction: "You are an English grammar checker. Always respond in valid JSON format only. No markdown fences."
     });
 
-    const result = await model.generateContent({
+    const aiResult = await model.generateContent({
       contents: [{ role: 'user', parts }],
     });
 
     await supabase.from('users').update({ grammar_checks_today: user.grammar_checks_today + 1, ai_credits_used: user.ai_credits_used + 1 }).eq('id', user.id);
 
-    const responseText = result.response.text() || '{}';
+    const responseText = aiResult.response.text() || '{}';
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     const result = jsonMatch ? JSON.parse(jsonMatch[0]) : { originalText: text, correctedText: responseText, errors: [] };
 
