@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { supabase } from '../supabase.js';
 import { adminAuth } from '../middleware.js';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export const reelsRouter = Router();
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 // Get all reel categories with words
 reelsRouter.get('/categories', async (_, res) => {
@@ -127,13 +127,16 @@ reelsRouter.post('/generate-words', adminAuth, async (req, res) => {
 Reply ONLY as JSON:
 {"translation": "...", "example": "...", "image_description": "..."}`;
       
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: { systemInstruction: "Output valid JSON only. No markdown.", maxOutputTokens: 300 }
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-1.5-flash',
+        systemInstruction: "Output valid JSON only. No markdown."
       });
 
-      const text = response.text || '';
+      const result = await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      });
+
+      const text = result.response.text() || '';
       const match = text.match(/\{[\s\S]*\}/);
       if (!match) continue;
       

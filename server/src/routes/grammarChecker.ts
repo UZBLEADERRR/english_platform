@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { supabase } from '../supabase.js';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export const grammarCheckerRouter = Router();
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 grammarCheckerRouter.post('/check', async (req, res) => {
   const { user_id, text, image_base64, image_mime_type } = req.body;
@@ -33,18 +33,18 @@ grammarCheckerRouter.post('/check', async (req, res) => {
       parts.push({ text: `Bu matnning ingliz tili grammatikasini tekshir. Xatolarni ko'rsat va to'g'risini yoz. Javobni JSON formatda ber: { originalText, correctedText, errors: [{ original, corrected, explanation }] }\n\nMatn: ${text}` });
     }
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+    const model = genAI.getGenerativeModel({ 
+      model: 'gemini-1.5-flash',
+      systemInstruction: "You are an English grammar checker. Always respond in valid JSON format only. No markdown fences."
+    });
+
+    const result = await model.generateContent({
       contents: [{ role: 'user', parts }],
-      config: { 
-        systemInstruction: "You are an English grammar checker. Always respond in valid JSON format only. No markdown fences.",
-        maxOutputTokens: 2048
-      }
     });
 
     await supabase.from('users').update({ grammar_checks_today: user.grammar_checks_today + 1, ai_credits_used: user.ai_credits_used + 1 }).eq('id', user.id);
 
-    const responseText = response.text || '{}';
+    const responseText = result.response.text() || '{}';
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     const result = jsonMatch ? JSON.parse(jsonMatch[0]) : { originalText: text, correctedText: responseText, errors: [] };
 
