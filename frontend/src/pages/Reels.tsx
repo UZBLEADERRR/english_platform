@@ -67,7 +67,7 @@ export default function Reels() {
     <div className="w-full h-full bg-black relative flex items-center justify-center overflow-hidden">
       {/* Category selector — show even for 1 category */}
       {categories.length > 0 && (
-        <div className="absolute top-4 left-4 right-16 z-20 flex gap-2 overflow-x-auto no-scrollbar">
+        <div className="absolute top-[75px] left-4 right-16 z-20 flex gap-2 overflow-x-auto no-scrollbar">
           {categories.map(cat => (
             <button key={cat.id} onClick={() => setSelectedCat(cat.id)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${selectedCat === cat.id ? 'bg-white text-black' : 'bg-white/20 text-white border border-white/20'}`}>
@@ -96,7 +96,7 @@ export default function Reels() {
             className="px-6 py-3 bg-primary text-white rounded-full font-medium">Qaytadan</button>
         </div>
       ) : (
-        <div className="relative w-full max-w-md h-full flex flex-col overflow-hidden z-10">
+        <div className="relative w-full h-full flex flex-col overflow-hidden z-10">
           {/* Current card */}
           <div className="absolute inset-0 w-full h-full page-enter" key={currentIndex}>
             {words[currentIndex]?.image_url?.match(/\.(mp4|webm|m3u8)/i) ? (
@@ -123,8 +123,8 @@ export default function Reels() {
             {(() => {
               const { mainWord, translation, example } = parseWord(words[currentIndex]?.word);
               return (
-                <div className="absolute top-20 left-4 right-4 flex flex-col items-center text-center">
-                  <div className="px-6 py-4 bg-black/30 backdrop-blur-md rounded-3xl border border-white/20 shadow-xl w-full">
+                <div className="absolute top-28 left-4 right-4 flex flex-col items-center text-center pointer-events-none">
+                  <div className="px-6 py-4 bg-black/30 backdrop-blur-md rounded-3xl border border-white/20 shadow-xl w-full max-w-sm">
                     <h2 className="text-4xl font-extrabold text-white drop-shadow-lg mb-2">{mainWord}</h2>
                     {translation && <p className="text-xl font-medium text-green-400 mb-3">{translation}</p>}
                     {example && <p className="text-[15px] font-medium text-white/90 italic leading-relaxed">"{example}"</p>}
@@ -143,24 +143,24 @@ export default function Reels() {
           </div>
 
           {/* Actions */}
-          <div className="absolute right-3 bottom-20 flex flex-col gap-5 items-center z-10">
+          <div className="absolute right-4 bottom-24 flex flex-col gap-6 items-center z-10">
             <button onClick={() => handleAction(true)} className="flex flex-col items-center gap-1 group">
-              <div className="p-3 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white group-hover:bg-green-500/50 transition-colors">
-                <Heart className="w-6 h-6" />
+              <div className="p-3.5 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white group-hover:bg-green-500/50 transition-colors shadow-lg">
+                <Heart className="w-7 h-7" />
               </div>
-              <span className="text-white text-[10px] font-medium">{t('iknow')}</span>
+              <span className="text-white text-[10px] font-bold drop-shadow-md">{t('iknow')}</span>
             </button>
             <button onClick={() => handleAction(false)} className="flex flex-col items-center gap-1 group">
-              <div className="p-3 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white group-hover:bg-red-500/50 transition-colors">
-                <X className="w-6 h-6" />
+              <div className="p-3.5 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white group-hover:bg-red-500/50 transition-colors shadow-lg">
+                <X className="w-7 h-7" />
               </div>
-              <span className="text-white text-[10px] font-medium">{t('idontknow')}</span>
+              <span className="text-white text-[10px] font-bold drop-shadow-md">{t('idontknow')}</span>
             </button>
             <button onClick={handleUndo} disabled={history.length === 0} className="flex flex-col items-center gap-1 group disabled:opacity-30">
-              <div className="p-3 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white group-hover:bg-blue-500/50 transition-colors">
-                <Undo2 className="w-6 h-6" />
+              <div className="p-3.5 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white group-hover:bg-blue-500/50 transition-colors shadow-lg">
+                <Undo2 className="w-7 h-7" />
               </div>
-              <span className="text-white text-[10px] font-medium">{t('undo')}</span>
+              <span className="text-white text-[10px] font-bold drop-shadow-md">{t('undo')}</span>
             </button>
           </div>
         </div>

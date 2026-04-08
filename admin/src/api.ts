@@ -53,6 +53,8 @@ class AdminApi {
   deleteMovie(id: string) { return this.del(`/api/movies/${id}`); }
   getMovieCategories() { return this.get('/api/movies/categories'); }
   addMovieCategory(d: any) { return this.post('/api/movies/categories', d); }
+  updateMovieCategory(id: string, d: any) { return this.put(`/api/movies/categories/${id}`, d); }
+  deleteMovieCategory(id: string) { return this.del(`/api/movies/categories/${id}`); }
   
   // Comics
   getComics() { return this.get('/api/comics/admin/all'); }

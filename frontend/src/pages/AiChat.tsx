@@ -173,7 +173,7 @@ export default function AiChat() {
         </button>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-4 pb-20">
+        <div className="flex-1 overflow-y-auto p-3 space-y-4">
           <AnimatePresence initial={false}>
           {messages.map((msg) => (
             <motion.div
@@ -242,7 +242,7 @@ export default function AiChat() {
         </div>
 
         {/* Input */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 pt-12 bg-gradient-to-t from-bg via-bg/90 to-transparent shrink-0">
+        <div className="shrink-0 p-4 bg-surface border-t border-theme sticky bottom-0 z-10 w-full">
           <div className="max-w-2xl mx-auto">
             {selectedImage && (
               <div className="mb-2 relative inline-block">

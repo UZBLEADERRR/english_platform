@@ -105,15 +105,14 @@ export default function MovieDetail() {
 
     const doc = document as any;
     if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
-      if (container.requestFullscreen) {
-        container.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {
-          if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
-        });
+      if (video.webkitEnterFullscreen) {
+        // iOS Safari specific
+        video.webkitEnterFullscreen();
+      } else if (container.requestFullscreen) {
+        container.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
       } else if (container.webkitRequestFullscreen) {
         container.webkitRequestFullscreen();
         setIsFullscreen(true);
-      } else if (video.webkitEnterFullscreen) {
-        video.webkitEnterFullscreen();
       }
     } else {
       if (doc.exitFullscreen) doc.exitFullscreen();

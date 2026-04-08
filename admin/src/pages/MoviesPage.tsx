@@ -9,7 +9,7 @@ export default function MoviesPage() {
   const [showCatForm, setShowCatForm] = useState(false);
   const [catName, setCatName] = useState('');
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState({ title: '', description: '', poster_url: '', video_url: '', category_id: '', is_18plus: false, is_locked: false });
+  const [form, setForm] = useState({ title: '', description: '', info_html: '', poster_url: '', video_url: '', category_id: '', is_18plus: false, is_locked: false });
   const [uploadingVideo, setUploadingVideo] = useState(false);
   
   const load = () => { adminApi.getMovies().then(setMovies).catch(() => {}); adminApi.getMovieCategories().then(setCategories).catch(() => {}); };
@@ -34,12 +34,12 @@ export default function MoviesPage() {
     }
     setShowForm(false); 
     setEditId(null);
-    setForm({ title: '', description: '', poster_url: '', video_url: '', category_id: '', is_18plus: false, is_locked: false }); 
+    setForm({ title: '', description: '', info_html: '', poster_url: '', video_url: '', category_id: '', is_18plus: false, is_locked: false }); 
     load(); 
   };
   
   const startEdit = (m: any) => {
-    setForm({ title: m.title, description: m.description || '', poster_url: m.poster_url || '', video_url: m.video_url || '', category_id: m.category_id || '', is_18plus: m.is_18plus, is_locked: m.is_locked });
+    setForm({ title: m.title, description: m.description || '', info_html: m.info_html || '', poster_url: m.poster_url || '', video_url: m.video_url || '', category_id: m.category_id || '', is_18plus: m.is_18plus, is_locked: m.is_locked });
     setEditId(m.id);
     setShowForm(true);
   };
@@ -56,16 +56,38 @@ export default function MoviesPage() {
           <button onClick={() => setShowForm(!showForm)} className="btn-primary text-xs flex items-center gap-1"><Plus className="w-3 h-3" /> Kino</button>
         </div>
       </div>
+
+      {categories.length > 0 && (
+        <div className="flex flex-wrap gap-2 py-2">
+          {categories.map(c => (
+            <div key={c.id} className="flex items-center gap-2 bg-surface px-3 py-1.5 rounded-full border border-theme">
+              <span className="text-sm font-medium text-main">{c.name}</span>
+              <button onClick={() => {
+                const newName = prompt('Yangi nom:', c.name);
+                if (newName && newName !== c.name) {
+                  adminApi.updateMovieCategory(c.id, { name: newName }).then(load);
+                }
+              }} className="text-blue-400 hover:text-blue-300 ml-1"><Edit2 className="w-3.5 h-3.5" /></button>
+              <button onClick={() => {
+                if(confirm("Rostan ham o'chirasizmi? Ushbu kategoriyadagi kinolar kategoriyasiz qoladi.")) adminApi.deleteMovieCategory(c.id).then(load);
+              }} className="text-red-400 hover:text-red-300"><Trash2 className="w-3.5 h-3.5" /></button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {showCatForm && (
         <div className="card flex gap-2">
           <input value={catName} onChange={e => setCatName(e.target.value)} placeholder="Kategoriya nomi" className="input flex-1" />
           <button onClick={addCategory} className="btn-primary text-xs">Saqlash</button>
         </div>
       )}
+      
       {showForm && (
         <div className="card space-y-3">
           <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="Nomi" className="input" />
-          <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Tavsif" className="input min-h-[60px]" />
+          <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Qisqa tavsif" className="input min-h-[60px]" />
+          <textarea value={form.info_html} onChange={e => setForm({...form, info_html: e.target.value})} placeholder="To'liq interaktiv HTML tavsif (ixtiyoriy)" className="input min-h-[100px] font-mono text-xs" />
           <input value={form.poster_url} onChange={e => setForm({...form, poster_url: e.target.value})} placeholder="Poster URL" className="input" />
           
           <div className="flex gap-2">

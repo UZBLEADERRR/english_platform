@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import BackButton from './components/BackButton';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from './i18n';
 import { useAppStore } from './store';
@@ -79,14 +78,13 @@ export default function Layout() {
     { path: '/profile', label: t('profile'), icon: User },
   ];
 
-  // Specific paths where we don't want to show the navbar
-  const isDetailedPage = /^\/(movies|apps|comics|library|grammar|reading|writing|listening|speaking|vocabulary|grammar_checker|tips|songs)\/.+/i.test(location.pathname);
-  const hideNavbar = isDetailedPage;
+  const mainNavPaths = ['/', '/apps', '/reels', '/ai-chat', '/profile'];
+  const hideNavbar = !mainNavPaths.includes(location.pathname);
 
   const isFullBleed = /^\/(reels|ai-chat)$/i.test(location.pathname);
 
   return (
-    <div className="flex flex-col min-h-[100dvh]">
+    <div className="flex flex-col min-h-[100dvh] bg-bg relative">
       {/* Top Navbar */}
       {!hideNavbar && (
       <nav className="fixed top-2 left-4 right-4 z-[100] bg-surface/90 backdrop-blur-xl border border-theme rounded-full drop-shadow-xl">
@@ -111,19 +109,25 @@ export default function Layout() {
         </div>
       </nav>
       )}
-       {hideNavbar && <BackButton />}
 
       {/* Main Content */}
       <main 
         key={location.pathname}
         className={cn(
-          "mx-auto flex flex-col relative page-enter w-full",
-          isFullBleed ? "flex-1 h-[100dvh]" : "flex-1 max-w-7xl px-4 pb-4",
+          "mx-auto flex flex-col relative page-enter w-full duration-500",
+          isFullBleed ? "flex-1 h-[calc(100dvh)] pt-[60px]" : "flex-1 max-w-7xl px-4 pb-4 min-h-[100dvh]",
           !hideNavbar && !isFullBleed ? "pt-20" : "",
-          !hideNavbar && isFullBleed ? "pt-[60px]" : "",
-          hideNavbar ? "pt-4" : ""
+          hideNavbar && !isFullBleed ? "pt-16" : ""
         )}
       >
+        {hideNavbar && !isFullBleed && (
+          <div className="absolute top-4 left-4 z-40">
+            <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 px-3 py-1.5 bg-surface/80 backdrop-blur-md rounded-full shadow-sm hover:bg-elevated text-main font-medium text-sm transition-colors border border-theme">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              Orqaga
+            </button>
+          </div>
+        )}
         <Outlet />
       </main>
     </div>

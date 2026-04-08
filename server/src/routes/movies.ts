@@ -66,6 +66,19 @@ moviesRouter.post('/categories', adminAuth, async (req, res) => {
   res.json(data);
 });
 
+moviesRouter.put('/categories/:id', adminAuth, async (req, res) => {
+  const { data, error } = await supabase.from('movie_categories').update(req.body).eq('id', req.params.id).select().single();
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+moviesRouter.delete('/categories/:id', adminAuth, async (req, res) => {
+  // Clear category_id from movies
+  await supabase.from('movies').update({ category_id: null }).eq('category_id', req.params.id);
+  await supabase.from('movie_categories').delete().eq('id', req.params.id);
+  res.json({ success: true });
+});
+
 moviesRouter.post('/', adminAuth, async (req, res) => {
   const { data, error } = await supabase.from('movies').insert(req.body).select().single();
   if (error) return res.status(500).json({ error: error.message });

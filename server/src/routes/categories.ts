@@ -10,10 +10,11 @@ categoriesRouter.get('/', async (_, res) => {
 });
 
 categoriesRouter.put('/:id', adminAuth, async (req, res) => {
+  const { id } = req.params;
+  const payload = { ...req.body, id, is_active: true };
   const { data, error } = await supabase
     .from('category_cards')
-    .update(req.body)
-    .eq('id', req.params.id)
+    .upsert(payload, { onConflict: 'id' })
     .select()
     .single();
   if (error) return res.status(500).json({ error: error.message });
