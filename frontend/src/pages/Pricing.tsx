@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
 import api from '../api';
 import { ArrowLeft, Check, Upload, Loader2, Crown, Star, Sparkles, Zap, Bot, BookOpen, Film, Shield } from 'lucide-react';
-import { cn } from '../Layout';
+import { cn } from '../utils';
 
 export default function Pricing() {
   const navigate = useNavigate();

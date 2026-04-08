@@ -4,7 +4,7 @@ import { useAppStore } from '../store';
 import api from '../api';
 import { Menu, Plus, Send, Square, X, MessageSquare, Trash2, Edit2, Bot, Code, Play, Maximize2, ImageIcon, Copy, Check, ArrowLeft } from 'lucide-react';
 import Markdown from 'react-markdown';
-import { cn } from '../Layout';
+import { cn } from '../utils';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 

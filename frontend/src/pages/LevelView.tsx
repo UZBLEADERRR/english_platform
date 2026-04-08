@@ -4,7 +4,7 @@ import { useTranslation } from '../i18n';
 import { useAppStore } from '../store';
 import api from '../api';
 import { ArrowLeft, Lock } from 'lucide-react';
-import { cn } from '../Layout';
+import { cn } from '../utils';
 
 export default function LevelView() {
   const { categoryId, levelId } = useParams();

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
 import { ArrowLeft, Volume2, CheckCircle, XCircle, AlertTriangle, Lightbulb, ExternalLink } from 'lucide-react';
-import { cn } from '../Layout';
+import { cn } from '../utils';
 
 const elementColors: Record<string, string> = {
   text: 'bg-surface border-theme',

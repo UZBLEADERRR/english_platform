@@ -4,7 +4,7 @@ import { useTranslation } from '../i18n';
 import { useAppStore } from '../store';
 import api from '../api';
 import { Search, ChevronLeft, ChevronRight, Lock, ArrowLeft } from 'lucide-react';
-import { cn } from '../Layout';
+import { cn } from '../utils';
 
 export default function Movies() {
   const t = useTranslation();

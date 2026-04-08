@@ -3,11 +3,10 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from './i18n';
 import { useAppStore } from './store';
 import { Home, Box, Film as Video, Bot, User } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
 import api from './api';
+import { cn } from './utils';
 
-export function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
+export { cn };
 
 export default function Layout() {
   const t = useTranslation();

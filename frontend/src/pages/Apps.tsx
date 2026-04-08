@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../i18n';
 import api from '../api';
 import { X, Lock } from 'lucide-react';
-import { cn } from '../Layout';
+import { cn } from '../utils';
 import { useAppStore } from '../store';
 
 export default function Apps() {

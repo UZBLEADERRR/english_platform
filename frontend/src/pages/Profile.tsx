@@ -4,7 +4,7 @@ import { useTranslation } from '../i18n';
 import { useAppStore } from '../store';
 import api from '../api';
 import { Edit2, Moon, Sun, Globe, Crown, CheckCircle, XCircle } from 'lucide-react';
-import { cn } from '../Layout';
+import { cn } from '../utils';
 
 export default function Profile() {
   const t = useTranslation();
