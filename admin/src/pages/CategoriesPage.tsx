@@ -44,10 +44,10 @@ export default function CategoriesPage() {
   const handleFileUpload = async (id: string, file: File) => {
     setUploadingId(id);
     try {
-      const res = await adminApi.uploadVideo(file); // uploadVideo uploads to generic bunny or storage and returns URL
+      const res = await adminApi.uploadFile(file); // uploadFile uploads to Bunny Storage
       handleUpdate(id, { image_url: res.url });
-    } catch(e) {
-      alert('Xatolik yuz berdi');
+    } catch(e: any) {
+      alert(e.message || 'Xatolik yuz berdi');
     } finally {
       setUploadingId(null);
     }

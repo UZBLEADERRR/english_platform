@@ -21,7 +21,7 @@ export default function MoviesPage() {
     setUploadingVideo(true);
     try {
       const res = await adminApi.uploadVideo(file);
-      setForm({...form, video_url: res.url}); // can be hls or iframe
+      setForm({...form, video_url: res.iframe || res.url}); // Prefer iframe embed logic
     } catch(e: any) { alert(e.message); }
     finally { setUploadingVideo(false); }
   };

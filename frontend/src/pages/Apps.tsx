@@ -116,9 +116,13 @@ export default function Apps() {
       {/* Full screen app view */}
       {viewingApp && (
         <div className="fixed inset-0 z-[100] bg-bg animate-in slide-in-from-bottom-4 duration-300 flex flex-col">
-          <div className="h-12 bg-surface border-b border-theme flex items-center justify-between px-4 shrink-0">
-            <h2 className="font-bold text-main text-sm truncate flex-1">{viewingApp.title}</h2>
-            <button onClick={() => setViewingApp(null)} className="p-2 text-muted hover:text-main"><X className="w-5 h-5" /></button>
+          <div className="h-12 bg-surface border-b border-theme flex items-center px-4 shrink-0 justify-between">
+            <button onClick={() => setViewingApp(null)} className="flex items-center gap-1.5 px-3 py-1.5 bg-elevated rounded-full hover:bg-white/10 text-main font-medium text-sm transition-colors border border-theme">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              Orqaga
+            </button>
+            <h2 className="font-bold text-main text-sm truncate max-w-[50%]">{viewingApp.title}</h2>
+            <div className="w-[80px]"></div>
           </div>
           <div className="flex-1 overflow-hidden">
             <iframe srcDoc={viewingApp.html_code} className="w-full h-full border-none bg-white" sandbox="allow-scripts allow-same-origin allow-forms" />

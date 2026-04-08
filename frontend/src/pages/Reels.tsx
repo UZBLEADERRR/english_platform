@@ -64,7 +64,7 @@ export default function Reels() {
   };
 
   return (
-    <div className="w-full h-full bg-black relative flex items-center justify-center overflow-hidden">
+    <div className="absolute inset-0 pt-[60px] bg-black flex items-center justify-center overflow-hidden">
       {/* Category selector — show even for 1 category */}
       {categories.length > 0 && (
         <div className="absolute top-[75px] left-4 right-16 z-20 flex gap-2 overflow-x-auto no-scrollbar">
