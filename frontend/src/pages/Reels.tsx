@@ -64,7 +64,7 @@ export default function Reels() {
   };
 
   return (
-    <div className="w-full bg-black relative flex items-center justify-center overflow-hidden" style={{ minHeight: 'calc(100dvh - 100px)' }}>
+    <div className="w-full h-full bg-black relative flex items-center justify-center overflow-hidden">
       {/* Category selector — show even for 1 category */}
       {categories.length > 0 && (
         <div className="absolute top-4 left-4 right-16 z-20 flex gap-2 overflow-x-auto no-scrollbar">
@@ -96,7 +96,7 @@ export default function Reels() {
             className="px-6 py-3 bg-primary text-white rounded-full font-medium">Qaytadan</button>
         </div>
       ) : (
-        <div className="relative w-full max-w-md h-full flex flex-col overflow-hidden z-10" style={{ minHeight: 'calc(100dvh - 100px)' }}>
+        <div className="relative w-full max-w-md h-full flex flex-col overflow-hidden z-10">
           {/* Current card */}
           <div className="absolute inset-0 w-full h-full page-enter" key={currentIndex}>
             {words[currentIndex]?.image_url?.match(/\.(mp4|webm|m3u8)/i) ? (

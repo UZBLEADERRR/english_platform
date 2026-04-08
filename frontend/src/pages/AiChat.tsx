@@ -120,7 +120,7 @@ export default function AiChat() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] -mx-4 sm:mx-0 sm:rounded-3xl relative overflow-hidden bg-surface shadow-2xl">
+    <div className="flex h-full w-full relative overflow-hidden bg-surface">
       {/* Sidebar Overlay */}
       {isSidebarOpen && <div className="absolute inset-0 bg-black/50 z-20 md:hidden" onClick={() => setIsSidebarOpen(false)} />}
 

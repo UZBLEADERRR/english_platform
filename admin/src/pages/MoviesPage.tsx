@@ -8,6 +8,7 @@ export default function MoviesPage() {
   const [showForm, setShowForm] = useState(false);
   const [showCatForm, setShowCatForm] = useState(false);
   const [catName, setCatName] = useState('');
+  const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState({ title: '', description: '', poster_url: '', video_url: '', category_id: '', is_18plus: false, is_locked: false });
   const [uploadingVideo, setUploadingVideo] = useState(false);
   
@@ -25,7 +26,23 @@ export default function MoviesPage() {
     finally { setUploadingVideo(false); }
   };
 
-  const addMovie = async () => { await adminApi.addMovie(form); setShowForm(false); setForm({ title: '', description: '', poster_url: '', video_url: '', category_id: '', is_18plus: false, is_locked: false }); load(); };
+  const addMovie = async () => { 
+    if (editId) {
+      await adminApi.updateMovie(editId, form);
+    } else {
+      await adminApi.addMovie(form); 
+    }
+    setShowForm(false); 
+    setEditId(null);
+    setForm({ title: '', description: '', poster_url: '', video_url: '', category_id: '', is_18plus: false, is_locked: false }); 
+    load(); 
+  };
+  
+  const startEdit = (m: any) => {
+    setForm({ title: m.title, description: m.description || '', poster_url: m.poster_url || '', video_url: m.video_url || '', category_id: m.category_id || '', is_18plus: m.is_18plus, is_locked: m.is_locked });
+    setEditId(m.id);
+    setShowForm(true);
+  };
   const deleteMovie = async (id: string) => { if(!confirm('O\'chirish?')) return; await adminApi.deleteMovie(id); load(); };
   const toggleLock = async (m: any) => { await adminApi.updateMovie(m.id, { is_locked: !m.is_locked }); load(); };
   const addCategory = async () => { if(!catName) return; await adminApi.addMovieCategory({ name: catName }); setCatName(''); setShowCatForm(false); load(); };
@@ -81,8 +98,9 @@ export default function MoviesPage() {
               <span className={`px-2 py-0.5 rounded text-xs ${m.is_locked ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'}`}>{m.is_locked ? 'Qulflangan' : 'Ochiq'}</span>
             </div>
             <div className="flex gap-2 pt-1">
-              <button onClick={() => toggleLock(m)} className="btn-secondary text-xs flex items-center gap-1">{m.is_locked ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}</button>
-              <button onClick={() => deleteMovie(m.id)} className="btn-danger text-xs flex items-center gap-1"><Trash2 className="w-3 h-3" /></button>
+              <button onClick={() => toggleLock(m)} className="btn-secondary text-xs flex items-center gap-1 hover:text-white" title={m.is_locked ? "Qulfni ochish" : "Qulflash"}>{m.is_locked ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}</button>
+              <button onClick={() => startEdit(m)} className="btn-secondary text-xs flex items-center gap-1 hover:text-blue-400" title="Tahrirlash"><Edit2 className="w-3 h-3" /></button>
+              <button onClick={() => deleteMovie(m.id)} className="btn-danger text-xs flex items-center gap-1" title="O'chirish"><Trash2 className="w-3 h-3" /></button>
             </div>
           </div>
         ))}

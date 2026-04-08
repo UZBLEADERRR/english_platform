@@ -99,18 +99,22 @@ export default function MovieDetail() {
   };
 
   const toggleFullscreen = () => {
-    const el = playerContainerRef.current as any;
-    if (!el) return;
+    const container = playerContainerRef.current as any;
+    const video = videoRef.current as any;
+    if (!container || !video) return;
+
     const doc = document as any;
     if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
-      if (el.requestFullscreen) el.requestFullscreen();
-      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-      else if (videoRef.current) {
-        // iOS Safari fallback: fullscreen on video element
-        const v = videoRef.current as any;
-        if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
+      if (container.requestFullscreen) {
+        container.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {
+          if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
+        });
+      } else if (container.webkitRequestFullscreen) {
+        container.webkitRequestFullscreen();
+        setIsFullscreen(true);
+      } else if (video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen();
       }
-      setIsFullscreen(true);
     } else {
       if (doc.exitFullscreen) doc.exitFullscreen();
       else if (doc.webkitExitFullscreen) doc.webkitExitFullscreen();

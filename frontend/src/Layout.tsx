@@ -79,8 +79,10 @@ export default function Layout() {
   ];
 
   // Specific paths where we don't want to show the navbar
-  const hideNavbarRegex = /^\/(movies|apps|comics|library)\/.+/i;
-  const hideNavbar = hideNavbarRegex.test(location.pathname);
+  const isDetailedPage = /^\/(movies|apps|comics|library|grammar|reading|writing|listening|speaking|vocabulary|grammar_checker|tips|songs)\/.+/i.test(location.pathname);
+  const hideNavbar = isDetailedPage;
+
+  const isFullBleed = /^\/(reels|ai-chat)$/i.test(location.pathname);
 
   return (
     <div className="flex flex-col min-h-[100dvh]">
@@ -112,7 +114,13 @@ export default function Layout() {
       {/* Main Content */}
       <main 
         key={location.pathname}
-        className={cn("flex-1 w-full mx-auto flex flex-col relative max-w-7xl px-4 pb-4 page-enter", hideNavbar ? "pt-4" : "pt-20")}
+        className={cn(
+          "mx-auto flex flex-col relative page-enter w-full",
+          isFullBleed ? "flex-1 h-[100dvh]" : "flex-1 max-w-7xl px-4 pb-4",
+          !hideNavbar && !isFullBleed ? "pt-20" : "",
+          !hideNavbar && isFullBleed ? "pt-[60px]" : "",
+          hideNavbar ? "pt-4" : ""
+        )}
       >
         <Outlet />
       </main>

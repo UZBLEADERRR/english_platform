@@ -44,6 +44,18 @@ bot.command('start', async (ctx) => {
     }
   }
 
+  if (!user.age || user.bot_state === 'WAITING_AGE') {
+    await supabase.from('users').update({ bot_state: 'WAITING_AGE' }).eq('id', user.id);
+    return ctx.reply('Iltimos, yoshingizni kiriting (faqat raqam, masalan: 20):');
+  } else if (!user.gender || user.bot_state === 'WAITING_GENDER') {
+    await supabase.from('users').update({ bot_state: 'WAITING_GENDER' }).eq('id', user.id);
+    const keyboard = new InlineKeyboard().text('Erkak', 'gender_m').text('Ayol', 'gender_f');
+    return ctx.reply('Iltimos, jinsingizni tanlang:', { reply_markup: keyboard });
+  } else if (!user.address || user.bot_state === 'WAITING_ADDRESS') {
+    await supabase.from('users').update({ bot_state: 'WAITING_ADDRESS' }).eq('id', user.id);
+    return ctx.reply('Iltimos, manzilingizni kiriting (Masalan: Toshkent shahar):');
+  }
+
   const keyboard = new InlineKeyboard()
     .webApp('📚 Ilovani ochish', WEBAPP_URL)
     .row()
@@ -54,6 +66,50 @@ bot.command('start', async (ctx) => {
     `🎓 *English Learning Platform*\n\nSalom, ${ctx.from?.first_name}! Ingliz tilini o'rganishni boshlaymizmi?\n\n📚 Grammatika, Reading, Writing, Listening, Speaking\n🎬 Filmlar va komikslar\n🤖 AI o'qituvchi\n📝 Grammar Checker\n\nPastdagi tugmani bosib ilovani oching!`,
     { parse_mode: 'Markdown', reply_markup: keyboard }
   );
+});
+
+// Registration steps handlers
+bot.on('message:text', async (ctx, next) => {
+  const telegramId = ctx.from?.id;
+  if (!telegramId || ctx.message.text.startsWith('/')) return next();
+  
+  const { data: user } = await supabase.from('users').select('*').eq('telegram_id', telegramId).single();
+  if (!user || !user.bot_state) return next();
+
+  if (user.bot_state === 'WAITING_AGE') {
+    const age = parseInt(ctx.message.text);
+    if (isNaN(age)) return ctx.reply('Iltimos, yoshingizni raqamda kiriting:');
+    
+    await supabase.from('users').update({ age, bot_state: 'WAITING_GENDER' }).eq('id', user.id);
+    const keyboard = new InlineKeyboard().text('Erkak', 'gender_m').text('Ayol', 'gender_f');
+    return ctx.reply('Iltimos, jinsingizni tanlang:', { reply_markup: keyboard });
+  }
+
+  if (user.bot_state === 'WAITING_ADDRESS') {
+    await supabase.from('users').update({ address: ctx.message.text, bot_state: null }).eq('id', user.id);
+    
+    const keyboard = new InlineKeyboard()
+      .webApp('📚 Ilovani ochish', WEBAPP_URL)
+      .row()
+      .text('⭐ Premium olish', 'buy_premium')
+      .text('💎 Ultra olish', 'buy_ultra');
+
+    return ctx.reply(
+      `🎓 *Rahmat!* Ma'lumotlaringiz saqlandi.\n\nIngliz tilini o'rganishni boshlaymizmi? Pastdagi tugmani bosib ilovani oching!`,
+      { parse_mode: 'Markdown', reply_markup: keyboard }
+    );
+  }
+  
+  return next();
+});
+
+bot.callbackQuery(/^gender_(m|f)$/, async (ctx) => {
+  const telegramId = ctx.from?.id;
+  if (!telegramId) return;
+  const gender = ctx.match![1] === 'm' ? 'Erkak' : 'Ayol';
+  await supabase.from('users').update({ gender, bot_state: 'WAITING_ADDRESS' }).eq('telegram_id', telegramId);
+  await ctx.answerCallbackQuery('Jins saqlandi');
+  await ctx.reply('Iltimos, manzilingizni kiriting (Masalan: Toshkent shahar):');
 });
 
 // Premium/Ultra purchase flow
