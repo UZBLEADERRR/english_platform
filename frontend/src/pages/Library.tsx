@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
 import api from '../api';
@@ -61,8 +62,8 @@ export default function Library() {
       )}
 
       {/* In-app PDF/URL viewer */}
-      {viewingBook && (
-        <div className="fixed inset-0 z-[200] bg-bg flex flex-col animate-in slide-in-from-bottom-4 duration-300">
+      {viewingBook && createPortal(
+        <div className="fixed inset-0 z-[9999] flex flex-col animate-in slide-in-from-bottom-4 duration-300 pointer-events-auto bg-bg">
           <div className="h-14 bg-surface/95 backdrop-blur-xl border-b border-theme flex items-center justify-between px-4 shrink-0">
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <BookOpen className="w-4 h-4 text-primary shrink-0" />
@@ -85,7 +86,7 @@ export default function Library() {
             />
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 }

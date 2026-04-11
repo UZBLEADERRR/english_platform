@@ -21,22 +21,36 @@ export default function VocabularyView() {
     });
   }, [topicId]);
 
-  const speak = (text: string) => {
+  useEffect(() => {
+    // Initial fetch of voices resolves empty voice list in Safari/WebView
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      utterance.rate = 0.9;
-      
-      // Select best voice if available, otherwise fallback to default en-US
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length > 0) {
-        const engVoice = voices.find(v => v.lang.includes('en-US') && (v.name.includes('Samantha') || v.name.includes('Google'))) 
-          || voices.find(v => v.lang.includes('en'));
-        if (engVoice) utterance.voice = engVoice;
+      window.speechSynthesis.getVoices();
+    }
+  }, []);
+
+  const speak = (text: string) => {
+    try {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9;
+        
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          const engVoice = voices.find(v => v.lang.includes('en-US') && (v.name.includes('Samantha') || v.name.includes('Google'))) 
+            || voices.find(v => v.lang.includes('en-US'))
+            || voices.find(v => v.lang.includes('en'));
+          if (engVoice) utterance.voice = engVoice;
+        }
+        
+        // Timeout helps mobile browsers execute it seamlessly
+        setTimeout(() => window.speechSynthesis.speak(utterance), 50);
+      } else {
+        alert("Ovozli funksiya qurilmangizda qo'llab-quvvatlanmaydi.");
       }
-      
-      window.speechSynthesis.speak(utterance);
+    } catch (e: any) {
+      alert("Ovozda xatolik: " + e.message);
     }
   };
 

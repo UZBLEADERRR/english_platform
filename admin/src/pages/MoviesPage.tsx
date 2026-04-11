@@ -27,6 +27,9 @@ export default function MoviesPage() {
   };
 
   const addMovie = async () => { 
+    if (!form.title) return alert('Kino nomini kiriting!');
+    if (!form.category_id) return alert('Iltimos, avval kategoriyani tanlang (agar yo\'q bo\'lsa yarating).');
+    
     if (editId) {
       await adminApi.updateMovie(editId, form);
     } else {
