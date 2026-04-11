@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAppStore } from '../store';
 import api from '../api';
-import { BookOpen, X, Eye } from 'lucide-react';
+import { BookOpen, X, Eye, ExternalLink } from 'lucide-react';
 
 export default function Library() {
   const navigate = useNavigate();
+  const { setIsNavbarHidden } = useAppStore();
   const [books, setBooks] = useState<any[]>([]);
   const [viewingBook, setViewingBook] = useState<any>(null);
+
+  useEffect(() => {
+    setIsNavbarHidden(true);
+    return () => setIsNavbarHidden(false);
+  }, [setIsNavbarHidden]);
 
   useEffect(() => {
     api.get('/api/library').then(setBooks).catch(() => {
@@ -65,9 +72,14 @@ export default function Library() {
               <BookOpen className="w-4 h-4 text-primary shrink-0" />
               <h2 className="font-bold text-main text-sm truncate">{viewingBook.title}</h2>
             </div>
-            <button onClick={() => setViewingBook(null)} className="p-2 text-muted hover:text-main transition-colors">
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <a href={viewingBook.pdf_url} target="_blank" rel="noopener noreferrer" className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors">
+                <ExternalLink className="w-5 h-5" />
+              </a>
+              <button onClick={() => setViewingBook(null)} className="p-2 text-muted hover:text-main transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
           <div className="flex-1 overflow-hidden bg-white">
             <iframe 

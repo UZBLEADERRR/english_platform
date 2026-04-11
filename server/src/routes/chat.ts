@@ -179,7 +179,7 @@ chatRouter.post('/send', async (req, res) => {
     const inputTokens = estimateTokens(fullInputText);
     
     const hasImage = image_base64 && image_mime_type;
-    const modelName = hasImage ? 'gemini-2.5-flash-image' : 'gemini-3-flash-preview';
+    const modelName = 'gemini-3-flash-preview';
     
     const model = genAI.getGenerativeModel({ 
       model: modelName,
@@ -199,7 +199,7 @@ chatRouter.post('/send', async (req, res) => {
         user_id,
         input_tokens: inputTokens,
         output_tokens: outputTokens,
-        model: 'gemini-1.5-flash',
+        model: 'gemini-3-flash-preview',
         endpoint: 'chat'
       });
     } catch (e) {

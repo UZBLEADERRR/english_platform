@@ -26,14 +26,16 @@ export default function VocabularyView() {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'en-US';
-      utterance.rate = 0.85;
-      utterance.pitch = 1;
-      // Try to use a premium English voice
+      utterance.rate = 0.9;
+      
+      // Select best voice if available, otherwise fallback to default en-US
       const voices = window.speechSynthesis.getVoices();
-      const englishVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Samantha'))
-        || voices.find(v => v.lang.startsWith('en-US'))
-        || voices.find(v => v.lang.startsWith('en'));
-      if (englishVoice) utterance.voice = englishVoice;
+      if (voices.length > 0) {
+        const engVoice = voices.find(v => v.lang.includes('en-US') && (v.name.includes('Samantha') || v.name.includes('Google'))) 
+          || voices.find(v => v.lang.includes('en'));
+        if (engVoice) utterance.voice = engVoice;
+      }
+      
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -47,9 +49,20 @@ export default function VocabularyView() {
   }
 
   return (
-    <div className="space-y-3 animate-in slide-in-from-right-4 duration-300 max-w-2xl mx-auto pb-8">
+    <div className="animate-in fade-in duration-500 pb-8">
+      {/* Banner */}
+      <div className="relative w-full h-48 md:h-64 rounded-b-[2rem] overflow-hidden -mt-14 mb-6 shadow-xl">
+        <img src="https://images.unsplash.com/photo-1546410531-dd4cbcecbbe1?w=800&h=400&fit=crop" alt="Vocabulary" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/40 to-transparent" />
+        <div className="absolute bottom-6 left-6 right-6">
+          <span className="px-3 py-1 bg-primary/20 text-primary rounded-lg text-xs font-bold uppercase tracking-wider backdrop-blur-md border border-primary/30">Vocabulary</span>
+          <h1 className="text-3xl font-extrabold text-main mt-2">Yangi So'zlar</h1>
+        </div>
+      </div>
+
+      <div className="space-y-3 px-4 max-w-2xl mx-auto">
       {words.length === 0 ? (
-        <div className="text-center py-12">
+        <div className="text-center py-12 bg-surface rounded-3xl border border-theme">
           <BookOpen className="w-12 h-12 mx-auto text-muted mb-3" />
           <p className="text-muted">Hozircha so'zlar yo'q</p>
         </div>
@@ -61,7 +74,7 @@ export default function VocabularyView() {
           >
             {/* Main word row */}
             <div 
-              className="flex items-center gap-3 p-4 cursor-pointer"
+              className="flex items-center gap-4 p-5 cursor-pointer"
               onClick={() => setExpandedWord(expandedWord === w.id ? null : w.id)}
             >
               {/* TTS Button */}
@@ -73,12 +86,12 @@ export default function VocabularyView() {
               </button>
 
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-main text-base">{w.english}</p>
-                <p className="text-primary text-sm">{w.uzbek}</p>
+                <p className="font-extrabold text-main text-xl tracking-tight">{w.english}</p>
+                <p className="text-primary text-sm font-medium mt-0.5">{w.uzbek}</p>
               </div>
 
-              <div className="text-muted">
-                {expandedWord === w.id ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+              <div className="text-muted p-2 rounded-full hover:bg-elevated transition-colors">
+                {expandedWord === w.id ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
               </div>
             </div>
 

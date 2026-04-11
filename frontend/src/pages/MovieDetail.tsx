@@ -218,9 +218,9 @@ export default function MovieDetail() {
   return (
     <div className="min-h-screen page-enter">
 
-      <div className={cn("max-w-4xl mx-auto space-y-4 px-4 pb-12")}>
+      <div className={cn("max-w-4xl mx-auto space-y-4 pb-12")}>
         {isAgeRestricted ? (
-          <div className="relative aspect-[2/3] max-h-[400px] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl mx-auto ring-1 ring-white/10 flex items-center justify-center bg-surface">
+          <div className="relative aspect-[2/3] max-h-[400px] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl mx-auto ring-1 ring-white/10 flex items-center justify-center bg-surface mt-4 px-4">
             <div className="absolute inset-0 bg-red-900/20" />
             <div className="z-10 text-center p-6 bg-red-500/10 border border-red-500/30 rounded-3xl backdrop-blur-md max-w-[80%]">
               <Lock className="w-12 h-12 mx-auto mb-3 text-red-500" />
@@ -231,7 +231,7 @@ export default function MovieDetail() {
         ) : showPlayer && canWatch ? (
           <div 
             ref={playerContainerRef} 
-            className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-xl cursor-pointer group"
+            className="relative aspect-video w-full md:rounded-2xl overflow-hidden bg-black shadow-xl cursor-pointer group"
             onClick={resetControlsTimer} 
             onMouseMove={resetControlsTimer}
           >
@@ -323,7 +323,7 @@ export default function MovieDetail() {
           </div>
         )}
 
-        <div className="space-y-4 px-1 pb-4">
+        <div className="space-y-4 px-4 pb-4">
           <h1 className="text-3xl font-extrabold text-main">{movie.title}</h1>
           
           {movie.info_html ? (

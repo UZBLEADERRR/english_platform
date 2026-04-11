@@ -46,7 +46,7 @@ Reply ONLY as JSON:
 {"example": "...", "synonyms": ["..."], "antonyms": ["..."], "uzbek": "${uzbek || '...'}"}`;
 
       const model = genAI.getGenerativeModel({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-3-flash-preview',
         systemInstruction: "Output valid JSON only. No markdown."
       });
 

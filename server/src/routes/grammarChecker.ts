@@ -33,7 +33,7 @@ grammarCheckerRouter.post('/check', async (req, res) => {
       parts.push({ text: `Bu matnning ingliz tili grammatikasini tekshir. Xatolarni ko'rsat va to'g'risini yoz. Javobni JSON formatda ber: { originalText, correctedText, errors: [{ original, corrected, explanation }] }\n\nMatn: ${text}` });
     }
 
-    const modelName = image_base64 ? 'gemini-2.5-flash-image' : 'gemini-3-flash-preview';
+    const modelName = 'gemini-3-flash-preview';
     const model = genAI.getGenerativeModel({ 
       model: modelName,
       systemInstruction: "You are an English grammar checker. Always respond in valid JSON format only. No markdown fences."

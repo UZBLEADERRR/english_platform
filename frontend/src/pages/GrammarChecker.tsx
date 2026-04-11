@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../i18n';
 import { useAppStore } from '../store';
@@ -9,11 +9,16 @@ import { cn } from '../utils';
 export default function GrammarChecker() {
   const t = useTranslation();
   const navigate = useNavigate();
-  const { user } = useAppStore();
+  const { user, setIsNavbarHidden } = useAppStore();
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    setIsNavbarHidden(true);
+    return () => setIsNavbarHidden(false);
+  }, [setIsNavbarHidden]);
 
   const handleCheck = async () => {
     if (!text.trim() || !user) return;
