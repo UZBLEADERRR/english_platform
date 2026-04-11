@@ -30,15 +30,19 @@ export default function MoviesPage() {
     if (!form.title) return alert('Kino nomini kiriting!');
     if (!form.category_id) return alert('Iltimos, avval kategoriyani tanlang (agar yo\'q bo\'lsa yarating).');
     
-    if (editId) {
-      await adminApi.updateMovie(editId, form);
-    } else {
-      await adminApi.addMovie(form); 
+    try {
+      if (editId) {
+        await adminApi.updateMovie(editId, form);
+      } else {
+        await adminApi.addMovie(form); 
+      }
+      setShowForm(false); 
+      setEditId(null);
+      setForm({ title: '', description: '', info_html: '', poster_url: '', video_url: '', telegram_code: '', category_id: '', is_18plus: false, is_locked: false }); 
+      load();
+    } catch (e: any) {
+      alert('Xatolik: ' + (e.message || 'Noma\'lum xatolik'));
     }
-    setShowForm(false); 
-    setEditId(null);
-    setForm({ title: '', description: '', info_html: '', poster_url: '', video_url: '', telegram_code: '', category_id: '', is_18plus: false, is_locked: false }); 
-    load(); 
   };
   
   const startEdit = (m: any) => {

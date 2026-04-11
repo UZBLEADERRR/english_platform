@@ -27,8 +27,25 @@ CREATE TABLE users (
   is_blocked BOOLEAN DEFAULT FALSE,
   referral_code TEXT UNIQUE,
   referred_by TEXT,
+  age INTEGER,
+  gender TEXT,
+  address TEXT,
+  bot_state TEXT,
+  last_expiry_reminder TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================
+-- 1b. LOGIN CODES
+-- ============================================
+CREATE TABLE login_codes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+  telegram_id BIGINT NOT NULL,
+  code TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ============================================
