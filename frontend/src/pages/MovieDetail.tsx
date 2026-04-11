@@ -229,10 +229,10 @@ export default function MovieDetail() {
             </div>
           </div>
         ) : showPlayer && canWatch ? (
-          <div className="-mx-4 md:mx-0">
+          <div className="w-full">
             <div 
               ref={playerContainerRef} 
-              className="relative aspect-video w-[100vw] md:w-full md:rounded-2xl overflow-hidden bg-black shadow-xl cursor-pointer group"
+              className="relative aspect-video w-full md:rounded-2xl overflow-hidden bg-black shadow-xl cursor-pointer group"
               onClick={resetControlsTimer} 
               onMouseMove={resetControlsTimer}
             >
@@ -329,7 +329,7 @@ export default function MovieDetail() {
           <h1 className="text-3xl font-extrabold text-main">{movie.title}</h1>
           
           {movie.info_html ? (
-            <div className="-mx-4 md:mx-0 rounded-none md:rounded-3xl overflow-hidden border-y md:border border-theme shadow-xl">
+            <div className="rounded-none md:rounded-3xl overflow-hidden border-y md:border border-theme shadow-xl">
               <iframe 
                 srcDoc={finalHtml} 
                 className="w-full border-none bg-white block"

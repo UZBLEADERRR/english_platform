@@ -145,7 +145,7 @@ export default function Layout() {
 
   const hideNavbar = isHiddenByStore || isInSection;
 
-  const isFullBleed = /^\/(reels|ai-chat)$/i.test(location.pathname) || isHiddenByStore;
+  const isFullBleed = /^\/(reels|ai-chat|vocabulary\/|lesson\/|movie\/|comic\/|library|songs|tips)/i.test(location.pathname) || isHiddenByStore;
 
   return (
     <div className="flex flex-col min-h-[100dvh] bg-bg relative">
@@ -191,10 +191,12 @@ export default function Layout() {
         key={location.pathname}
         className={cn(
           "mx-auto flex flex-col relative page-enter w-full duration-500",
-          isFullBleed ? "flex-1 h-[calc(100dvh)] pt-[60px]" : "flex-1 max-w-7xl px-4 pb-4 min-h-[100dvh]",
+          isFullBleed ? "flex-1 h-[calc(100dvh)] pt-0 overflow-x-hidden" : "flex-1 max-w-7xl px-4 pb-4 min-h-[100dvh]",
           !hideNavbar && !isFullBleed ? "pt-20" : "",
-          isInSection && !isHiddenByStore ? "pt-16" : "",
-          hideNavbar && !isInSection && !isFullBleed ? "pt-6" : ""
+          isInSection && !isHiddenByStore ? "pt-14" : "", // Reduced from 16 to 14 to fit header perfectly
+          hideNavbar && !isInSection && !isFullBleed ? "pt-6" : "",
+          // If full bleed and in section, we need to handle the header offset
+          isFullBleed && isInSection ? "pt-14" : ""
         )}
       >
         <Outlet />
