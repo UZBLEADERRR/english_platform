@@ -202,11 +202,18 @@ export default function LessonView() {
     }
   };
 
+  // If we have a webview, the whole page should behave like a single app page
+  const hasWebview = elements.some(el => el.element_type === 'webview');
+
   return (
-    <div className="space-y-2 animate-in slide-in-from-right-4 duration-300 max-w-2xl mx-auto pb-6">
-      
+    <div className={cn(
+      "animate-in slide-in-from-right-4 duration-300 mx-auto pb-6",
+      hasWebview ? "w-full max-w-none" : "max-w-2xl space-y-2 px-0"
+    )}>
       {elements.map((el) => (
-        <div key={el.id}>{renderElement(el)}</div>
+        <div key={el.id} className={cn(el.element_type === 'webview' ? "w-full" : "px-4")}>
+          {renderElement(el)}
+        </div>
       ))}
     </div>
   );
