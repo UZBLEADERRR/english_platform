@@ -42,3 +42,33 @@ topicsRouter.put('/reorder/batch', adminAuth, async (req, res) => {
   }
   res.json({ success: true });
 });
+
+// User: Mark topic as completed
+topicsRouter.post('/:id/complete', async (req, res) => {
+  const userId = req.headers['x-user-id'] as string;
+  if (!userId) return res.status(401).json({ error: 'User ID missing' });
+
+  const { data, error } = await supabase
+    .from('user_progress')
+    .upsert({ 
+      user_id: userId, 
+      topic_id: req.params.id, 
+      completed: true, 
+      completed_at: new Date().toISOString() 
+    }, { onConflict: 'user_id,topic_id' })
+    .select();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data[0]);
+});
+
+// User: Get all completed topics
+topicsRouter.get('/progress/:userId', async (req, res) => {
+  const { data } = await supabase
+    .from('user_progress')
+    .select('topic_id')
+    .eq('user_id', req.params.userId)
+    .eq('completed', true);
+  
+  res.json(data?.map(p => p.topic_id) || []);
+});
