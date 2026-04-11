@@ -41,6 +41,8 @@ export default function Layout() {
   const navigate = useNavigate();
   const { user, setUser, isNavbarHidden: isHiddenByStore, setIsNavbarHidden } = useAppStore();
   const [showReg, setShowReg] = useState(false);
+  const [showCodeLogin, setShowCodeLogin] = useState(false);
+  const [loginForm, setLoginForm] = useState({ telegram_id: '', code: '' });
   const [regData, setRegData] = useState({ first_name: '', age: '', gender: '' });
 
   // Reset navbar visibility when navigating between pages
@@ -85,27 +87,14 @@ export default function Layout() {
         api.setUserId(u.id);
         setUser(u);
       }).catch(console.error);
-    } else if (!user || user.telegram_id === 123456789) {
-      // Dev mode
-      api.setTelegramId('123456789');
-      api.loginTelegram({
-        telegram_id: 123456789,
-        username: 'dev_user',
-        first_name: 'Dev',
-        last_name: 'User',
-      }).then(({ user: u }) => {
-        api.setUserId(u.id);
-        setUser(u);
-      }).catch(() => {
-        setUser({
-          id: 'mock-id', telegram_id: 123456789, username: 'dev_user',
-          first_name: 'Dev', role: 'user', subscription: 'free',
-          ai_credits_used: 0, ai_messages_today: 0, grammar_checks_today: 0, is_blocked: false,
-        });
-      });
-    } else if (user && user.telegram_id !== 123456789) {
+    } else if (user && user.telegram_id && user.telegram_id !== 123456789) {
+      // User already logged in via state
       api.setTelegramId(user.telegram_id.toString());
       api.setUserId(user.id);
+    } else {
+      // No telegram webapp and no logged in user -> explicitly require login
+      setShowCodeLogin(true);
+      setUser(null);
     }
   }, []);
 
@@ -130,6 +119,19 @@ export default function Layout() {
       setShowReg(false);
     } catch (e) {
       alert('Xatolik yuz berdi. Qaytadan urinib ko\'ring.');
+    }
+  };
+
+  const handleCodeLogin = async () => {
+    if (!loginForm.telegram_id || !loginForm.code) return alert('Barcha maydonlarni to\'ldiring');
+    try {
+      const u = await api.loginCode(loginForm.telegram_id, loginForm.code);
+      api.setTelegramId(u.telegram_id.toString());
+      api.setUserId(u.id);
+      setUser(u);
+      setShowCodeLogin(false);
+    } catch (e: any) {
+      alert(e.message || 'Xatolik');
     }
   };
 
@@ -252,6 +254,51 @@ export default function Layout() {
                 className="w-full py-3.5 mt-2 bg-gradient-to-r from-primary to-blue-600 text-white font-bold rounded-xl shadow-lg shadow-primary/30 hover:-translate-y-1 transition-transform"
               >
                 Boshlash 🚀
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Code Login Modal */}
+      {showCodeLogin && (
+        <div className="fixed inset-0 z-[999] bg-bg flex flex-col items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-surface border border-theme rounded-3xl p-6 shadow-2xl space-y-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary/20 rounded-2xl mx-auto flex items-center justify-center mb-3">
+                <span className="text-3xl">🔐</span>
+              </div>
+              <h2 className="text-2xl font-extrabold text-main">Tizimga kirish</h2>
+              <p className="text-muted text-sm mt-2">Telegram botingiz /start yuborganingizda bergan ID va maxfiy kodni kiriting.</p>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-main mb-1.5">Telegram ID</label>
+                <input 
+                  type="number" 
+                  value={loginForm.telegram_id} 
+                  onChange={e => setLoginForm({...loginForm, telegram_id: e.target.value})}
+                  className="w-full bg-elevated border border-theme rounded-xl px-4 py-3 text-main outline-none focus:border-primary transition-colors"
+                  placeholder="Masalan: 12345678"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-main mb-1.5">Kirish Kodi</label>
+                <input 
+                  type="number" 
+                  value={loginForm.code} 
+                  onChange={e => setLoginForm({...loginForm, code: e.target.value})}
+                  className="w-full bg-elevated border border-theme rounded-xl px-4 py-3 text-main outline-none focus:border-primary transition-colors"
+                  placeholder="6 xonali kod"
+                />
+              </div>
+              
+              <button 
+                onClick={handleCodeLogin}
+                className="w-full py-3.5 mt-2 bg-gradient-to-r from-primary to-blue-600 text-white font-bold rounded-xl shadow-lg shadow-primary/30 hover:-translate-y-1 transition-transform"
+              >
+                Kirish 🚀
               </button>
             </div>
           </div>

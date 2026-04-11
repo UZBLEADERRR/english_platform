@@ -31,6 +31,7 @@ class ApiClient {
 
   // Auth
   loginTelegram(data: any) { return this.post('/api/auth/telegram', data); }
+  loginCode(telegram_id: string, code: string) { return this.post('/api/users/login-code', { telegram_id, code }); }
   getMe() { return this.get('/api/auth/me'); }
 
   // Carousel

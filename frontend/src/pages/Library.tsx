@@ -25,6 +25,15 @@ export default function Library() {
     });
   }, []);
 
+  const openExternal = (url: string) => {
+    const tg = (window as any).Telegram?.WebApp;
+    if (tg && tg.openLink) {
+      tg.openLink(url);
+    } else {
+      window.open(url, '_blank');
+    }
+  };
+
   return (
     <div className="page-enter max-w-2xl mx-auto -mx-4 md:mx-auto pb-8">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-0 border-y border-theme bg-surface overflow-hidden md:rounded-3xl md:border md:gap-4 md:bg-transparent md:p-4">
@@ -70,18 +79,25 @@ export default function Library() {
               <h2 className="font-bold text-main text-sm truncate">{viewingBook.title}</h2>
             </div>
             <div className="flex items-center gap-2">
-              <a href={viewingBook.pdf_url} target="_blank" rel="noopener noreferrer" className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors">
+              <button onClick={() => openExternal(viewingBook.pdf_url)} className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors">
                 <ExternalLink className="w-5 h-5" />
-              </a>
+              </button>
               <button onClick={() => setViewingBook(null)} className="p-2 text-muted hover:text-main transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
           </div>
-          <div className="flex-1 overflow-hidden bg-white">
+          <div className="flex-1 overflow-hidden bg-white relative">
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-0 bg-surface">
+              <BookOpen className="w-12 h-12 text-muted mb-3" />
+              <p className="text-muted text-sm max-w-xs mb-4">Agar PDF fayl qurilmangizda ochilmasa, tashqi brauzerda ochish tugmasini bosing.</p>
+              <button onClick={() => openExternal(viewingBook.pdf_url)} className="px-4 py-2 bg-primary text-white rounded-lg text-sm flex items-center justify-center gap-2 shadow-lg">
+                <ExternalLink className="w-4 h-4" /> Brauzerda ochish
+              </button>
+            </div>
             <iframe 
               src={viewingBook.pdf_url} 
-              className="w-full h-full border-none"
+              className="w-full h-full border-none relative z-10 bg-transparent"
               title={viewingBook.title}
             />
           </div>

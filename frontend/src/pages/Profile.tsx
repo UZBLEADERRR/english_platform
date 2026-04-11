@@ -113,6 +113,18 @@ export default function Profile() {
           <div className="col-span-3 text-center py-8 text-muted text-sm">Hali so'zlar yo'q</div>
         )}
       </div>
+
+      <div className="pt-6 pb-2">
+        <button 
+          onClick={() => {
+            localStorage.clear();
+            window.location.href = '/';
+          }}
+          className="w-full py-3.5 bg-red-500/10 text-red-500 font-bold rounded-xl hover:bg-red-500/20 transition-all text-sm"
+        >
+          Tizimdan chiqish
+        </button>
+      </div>
     </div>
   );
 }
