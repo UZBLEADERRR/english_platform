@@ -63,22 +63,29 @@ export default function ComicReader() {
     }
   };
 
+  const openExternal = (url: string) => {
+    const tg = (window as any).Telegram?.WebApp;
+    if (tg && tg.openLink) {
+      tg.openLink(url);
+    } else {
+      window.open(url, '_blank');
+    }
+  };
+
   if (!comic) return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>;
 
   const firstUrl = comic.pages?.[0]?.image_url || '';
-  const isCbz = firstUrl.endsWith('.cbz') || firstUrl.includes('.cbz');
-  const isPdf = firstUrl.endsWith('.pdf') || firstUrl.includes('.pdf');
+  const isCbz = firstUrl.toLowerCase().endsWith('.cbz') || firstUrl.includes('.cbz');
+  const isPdf = firstUrl.toLowerCase().endsWith('.pdf') || firstUrl.includes('.pdf');
 
   return (
     <div className="animate-in fade-in duration-500 min-h-screen">
-      {!showReader && (
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 p-2 mb-4 rounded-full hover:bg-elevated text-main">
-          <ArrowLeft className="w-5 h-5" /><span className="font-medium">Orqaga</span>
-        </button>
-      )}
-
       {!showReader ? (
-        <div className="max-w-md mx-auto space-y-4 pb-8">
+        <div className="max-w-md mx-auto space-y-4 pb-8 px-4 pt-4">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-2 p-2 rounded-full hover:bg-elevated text-main mb-2">
+            <ArrowLeft className="w-5 h-5" /><span className="font-medium">Orqaga</span>
+          </button>
+          
           <div className="aspect-[3/4] rounded-2xl overflow-hidden shadow-xl">
             <img src={comic.cover_url} alt={comic.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           </div>
@@ -98,8 +105,9 @@ export default function ComicReader() {
             
             {isPdf ? (
               <div className="flex gap-2">
-                 <button onClick={() => setPdfScale(s => Math.max(0.5, s - 0.2))} className="p-2 bg-elevated rounded-lg"><ZoomOut className="w-4 h-4 text-white" /></button>
-                 <button onClick={() => setPdfScale(s => Math.min(3, s + 0.2))} className="p-2 bg-elevated rounded-lg"><ZoomIn className="w-4 h-4 text-white" /></button>
+                 <button onClick={() => openExternal(firstUrl)} className="p-2 bg-primary/10 text-primary rounded-lg flex items-center gap-1.5 text-xs font-bold">
+                   <ZoomIn className="w-4 h-4" /> Brauzer
+                 </button>
               </div>
             ) : <div className="w-10"></div>}
           </div>
@@ -121,7 +129,17 @@ export default function ComicReader() {
                 <Document 
                    file={firstUrl} 
                    onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                   loading={<div className="p-10"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>}
+                   onLoadError={() => {}}
+                   loading={<div className="p-10 flex flex-col items-center gap-3">
+                     <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                     <p className="text-slate-500 text-sm">PDF yuklanmoqda...</p>
+                   </div>}
+                   error={<div className="p-10 text-center">
+                     <p className="text-red-500 font-bold mb-4">PDF ochilmadi</p>
+                     <button onClick={() => openExternal(firstUrl)} className="px-6 py-3 bg-primary text-white font-bold rounded-xl shadow-lg">
+                       Brauzerda ochish 🚀
+                     </button>
+                   </div>}
                 >
                   {Array.from(new Array(numPages || 0), (el, index) => (
                     <Page 
@@ -131,10 +149,17 @@ export default function ComicReader() {
                       className="mb-2 shadow-lg max-w-full"
                       renderTextLayer={false}
                       renderAnnotationLayer={false}
-                      width={screen.width < 768 ? screen.width - 20 : undefined}
+                      width={window.innerWidth < 768 ? window.innerWidth - 20 : undefined}
                     />
                   ))}
                 </Document>
+                
+                <div className="p-6 text-center border-t border-theme w-full bg-slate-50">
+                   <p className="text-muted text-xs mb-3">PDF o'qishda muammo bo'lsa:</p>
+                   <button onClick={() => openExternal(firstUrl)} className="text-primary font-bold text-sm flex items-center justify-center gap-2 mx-auto">
+                     Tashqi brauzerda ochish <ZoomIn className="w-4 h-4" />
+                   </button>
+                </div>
               </div>
             )}
 
