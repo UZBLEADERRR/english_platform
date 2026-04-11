@@ -155,6 +155,7 @@ export default function VocabularyView() {
           </div>
         ))
       )}
+      </div>
     </div>
   );
 }
