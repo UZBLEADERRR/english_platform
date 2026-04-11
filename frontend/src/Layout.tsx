@@ -190,13 +190,12 @@ export default function Layout() {
       <main 
         key={location.pathname}
         className={cn(
-          "mx-auto flex flex-col relative page-enter w-full duration-500",
-          isFullBleed ? "flex-1 h-[calc(100dvh)] pt-0 overflow-x-hidden" : "flex-1 max-w-7xl px-4 pb-4 min-h-[100dvh]",
-          !hideNavbar && !isFullBleed ? "pt-20" : "",
-          isInSection && !isHiddenByStore ? "pt-14" : "", // Reduced from 16 to 14 to fit header perfectly
-          hideNavbar && !isInSection && !isFullBleed ? "pt-6" : "",
-          // If full bleed and in section, we need to handle the header offset
-          isFullBleed && isInSection ? "pt-14" : ""
+          "flex-1 flex flex-col relative page-enter w-full duration-500 mx-auto",
+          isFullBleed ? "max-w-none" : "max-w-7xl px-4 pb-4",
+          !hideNavbar ? "pt-20" : "",
+          isInSection ? "pt-14" : "",
+          !hideNavbar && !isInSection ? "pt-20" : "",
+          hideNavbar && !isInSection ? "pt-6" : ""
         )}
       >
         <Outlet />

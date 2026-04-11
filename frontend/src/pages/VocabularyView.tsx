@@ -65,7 +65,7 @@ export default function VocabularyView() {
   return (
     <div className="animate-in fade-in duration-500 pb-8">
       {/* Banner */}
-      <div className="relative w-full h-48 md:h-64 rounded-b-[2rem] overflow-hidden -mt-14 mb-6 shadow-xl">
+      <div className="relative w-full h-48 md:h-64 rounded-b-[2rem] overflow-hidden mb-6 shadow-xl">
         <img src="https://images.unsplash.com/photo-1546410531-dd4cbcecbbe1?w=800&h=400&fit=crop" alt="Vocabulary" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/40 to-transparent" />
         <div className="absolute bottom-6 left-6 right-6">

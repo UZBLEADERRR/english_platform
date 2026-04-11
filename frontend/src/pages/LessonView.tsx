@@ -133,12 +133,12 @@ export default function LessonView() {
         }
 
         return (
-          <div className="w-full overflow-hidden border-y border-theme shadow-md bg-white">
+          <div className="w-full overflow-hidden border-y border-theme shadow-lg bg-white">
             <iframe
               ref={iframeRef}
               srcDoc={finalHtml}
               className="w-full border-none"
-              style={{ minHeight: 'calc(100dvh - 56px)', height: '100dvh' }}
+              style={{ minHeight: 'calc(100dvh - 80px)', height: '100%' }}
               sandbox="allow-scripts allow-same-origin allow-forms"
               onLoad={autoResize}
             />
@@ -202,16 +202,16 @@ export default function LessonView() {
     }
   };
 
-  // If we have a webview, the whole page should behave like a single app page
+  // If we have a webview, it should occupy the majority of the screen but not overflow it
   const hasWebview = elements.some(el => el.element_type === 'webview');
 
   return (
     <div className={cn(
-      "animate-in slide-in-from-right-4 duration-300 mx-auto pb-6",
-      hasWebview ? "w-full max-w-none" : "max-w-2xl space-y-2 px-0"
+      "animate-in slide-in-from-right-4 duration-300 mx-auto",
+      hasWebview ? "w-full max-w-none flex flex-col min-h-screen" : "max-w-2xl space-y-2 px-0 pb-6 pt-4"
     )}>
       {elements.map((el) => (
-        <div key={el.id} className={cn(el.element_type === 'webview' ? "w-full" : "px-4")}>
+        <div key={el.id} className={cn(el.element_type === 'webview' ? "w-full flex-1" : "px-4 mb-2")}>
           {renderElement(el)}
         </div>
       ))}
