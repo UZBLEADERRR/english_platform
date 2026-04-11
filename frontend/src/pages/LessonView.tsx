@@ -207,8 +207,8 @@ export default function LessonView() {
 
   return (
     <div className={cn(
-      "animate-in slide-in-from-right-4 duration-300 mx-auto",
-      hasWebview ? "w-full max-w-none flex flex-col min-h-screen" : "max-w-2xl space-y-2 px-0 pb-6 pt-4"
+      "animate-in slide-in-from-right-4 duration-300 mx-auto pt-4",
+      hasWebview ? "w-full max-w-none flex flex-col min-h-screen" : "max-w-2xl space-y-2 px-0 pb-6"
     )}>
       {elements.map((el) => (
         <div key={el.id} className={cn(el.element_type === 'webview' ? "w-full flex-1" : "px-4 mb-2")}>

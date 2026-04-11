@@ -192,10 +192,9 @@ export default function Layout() {
         className={cn(
           "flex-1 flex flex-col relative page-enter w-full duration-500 mx-auto",
           isFullBleed ? "max-w-none" : "max-w-7xl px-4 pb-4",
-          !hideNavbar ? "pt-20" : "",
-          isInSection ? "pt-14" : "",
-          !hideNavbar && !isInSection ? "pt-20" : "",
-          hideNavbar && !isInSection ? "pt-6" : ""
+          !hideNavbar ? "pt-24" : "",
+          isInSection ? "pt-16" : "",
+          hideNavbar && !isInSection ? "pt-8" : ""
         )}
       >
         <Outlet />
