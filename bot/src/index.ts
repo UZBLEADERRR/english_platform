@@ -9,12 +9,52 @@ const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SE
 const WEBAPP_URL = process.env.WEBAPP_URL || 'https://english-platform.railway.app';
 const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID || '';
 
-// /start command
+// ───── Helpers ─────
+
+/** Generate a random 6-digit login code */
+function generateLoginCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+/** Fetch dynamic prices from pricing_config table */
+async function getPrices(): Promise<{ premium: number; ultra: number }> {
+  const { data } = await supabase.from('pricing_config').select('*');
+  let premium = 29000, ultra = 49000;
+  if (data) {
+    const p = data.find((x: any) => x.id === 'premium');
+    const u = data.find((x: any) => x.id === 'ultra');
+    if (p) premium = p.price;
+    if (u) ultra = u.price;
+  }
+  return { premium, ultra };
+}
+
+/** Build keyboard based on user subscription */
+function buildMainKeyboard(subscription: string | null): InlineKeyboard {
+  const kb = new InlineKeyboard()
+    .webApp('📚 Ilovani ochish', WEBAPP_URL)
+    .row()
+    .text('🔑 Kirish kodi olish', 'get_login_code');
+
+  if (!subscription || subscription === 'free') {
+    kb.row()
+      .text('⭐ Premium olish', 'buy_premium')
+      .text('💎 Ultra olish', 'buy_ultra');
+  } else if (subscription === 'premium') {
+    kb.row()
+      .text('💎 Ultra ga upgrade', 'buy_ultra');
+  }
+  // Ultra users don't see any buy buttons
+
+  return kb;
+}
+
+// ───── /start command ─────
 bot.command('start', async (ctx) => {
   const telegramId = ctx.from?.id;
   if (!telegramId) return;
 
-  const startParam = ctx.match; // referral code or movie code
+  const startParam = ctx.match;
   
   // Handle movie code: /start movie_XXXXX
   if (startParam && startParam.startsWith('movie_')) {
@@ -26,13 +66,11 @@ bot.command('start', async (ctx) => {
       .single();
     
     if (movie) {
-      // Check if user has subscription for locked movies
       const { data: user } = await supabase.from('users').select('*').eq('telegram_id', telegramId).single();
       if (movie.is_locked && (!user || (user.subscription !== 'premium' && user.subscription !== 'ultra'))) {
         return ctx.reply('🔒 Bu kino faqat Premium/Ultra foydalanuvchilar uchun. Ilovadan Premium sotib oling!');
       }
       
-      // Try to send the movie file from the stored file_id
       if (movie.telegram_file_id) {
         try {
           await ctx.replyWithVideo(movie.telegram_file_id, {
@@ -72,7 +110,6 @@ bot.command('start', async (ctx) => {
     }).select().single();
     user = newUser;
 
-    // Track referral
     if (startParam) {
       const { data: refLink } = await supabase.from('referral_links').select('*').eq('code', startParam).single();
       if (refLink) {
@@ -81,6 +118,7 @@ bot.command('start', async (ctx) => {
     }
   }
 
+  // Onboarding steps
   if (!user.age || user.bot_state === 'WAITING_AGE') {
     await supabase.from('users').update({ bot_state: 'WAITING_AGE' }).eq('id', user.id);
     return ctx.reply('Iltimos, yoshingizni kiriting (faqat raqam, masalan: 20):');
@@ -93,19 +131,69 @@ bot.command('start', async (ctx) => {
     return ctx.reply('Iltimos, manzilingizni kiriting (Masalan: Toshkent shahar):');
   }
 
-  const keyboard = new InlineKeyboard()
-    .webApp('📚 Ilovani ochish', WEBAPP_URL)
-    .row()
-    .text('⭐ Premium olish', 'buy_premium')
-    .text('💎 Ultra olish', 'buy_ultra');
+  // ── Generate login code ──
+  const code = generateLoginCode();
+  const expiresAt = new Date(Date.now() + 3 * 60 * 1000); // 3 min
+
+  await supabase.from('login_codes').upsert({
+    user_id: user.id,
+    telegram_id: telegramId,
+    code,
+    expires_at: expiresAt.toISOString(),
+  }, { onConflict: 'user_id' });
+
+  // ── Build keyboard based on subscription ──
+  const keyboard = buildMainKeyboard(user.subscription);
+
+  const subLabel = user.subscription === 'ultra' ? '💎 Ultra' : user.subscription === 'premium' ? '⭐ Premium' : '🆓 Free';
+  let expiryText = '';
+  if (user.subscription_expires_at && user.subscription !== 'free') {
+    const exp = new Date(user.subscription_expires_at);
+    expiryText = `\n📅 Muddat: ${exp.toLocaleDateString('uz-UZ')}`;
+  }
 
   await ctx.reply(
-    `🎓 *English Learning Platform*\n\nSalom, ${ctx.from?.first_name}! Ingliz tilini o'rganishni boshlaymizmi?\n\n📚 Grammatika, Reading, Writing, Listening, Speaking\n🎬 Filmlar va komikslar\n🤖 AI o'qituvchi\n📝 Grammar Checker\n\nPastdagi tugmani bosib ilovani oching!`,
+    `🎓 *English Learning Platform*\n\n` +
+    `Salom, ${ctx.from?.first_name}!\n\n` +
+    `🆔 Sizning ID: \`${telegramId}\`\n` +
+    `🔑 Kirish kodi: \`${code}\`\n` +
+    `⏱ Kod 3 daqiqa amal qiladi\n\n` +
+    `📦 Tarif: ${subLabel}${expiryText}\n\n` +
+    `Ilovaga kirish uchun yuqoridagi ID va kodni kiriting yoki pastdagi tugmani bosing!`,
     { parse_mode: 'Markdown', reply_markup: keyboard }
   );
 });
 
-// Registration steps handlers
+// ───── Login code button ─────
+bot.callbackQuery('get_login_code', async (ctx) => {
+  const telegramId = ctx.from?.id;
+  if (!telegramId) return;
+
+  const { data: user } = await supabase.from('users').select('*').eq('telegram_id', telegramId).single();
+  if (!user) return ctx.answerCallbackQuery('Avval /start bosing');
+
+  const code = generateLoginCode();
+  const expiresAt = new Date(Date.now() + 3 * 60 * 1000);
+
+  await supabase.from('login_codes').upsert({
+    user_id: user.id,
+    telegram_id: telegramId,
+    code,
+    expires_at: expiresAt.toISOString(),
+  }, { onConflict: 'user_id' });
+
+  await ctx.answerCallbackQuery();
+  await ctx.reply(
+    `🔑 *Yangi kirish kodi*\n\n` +
+    `🆔 ID: \`${telegramId}\`\n` +
+    `🔐 Kod: \`${code}\`\n\n` +
+    `⏱ Bu kod *3 daqiqa* amal qiladi.\n` +
+    `Ilovaga kirishda ID va kodni kiriting.`,
+    { parse_mode: 'Markdown' }
+  );
+});
+
+// ───── Registration steps ─────
 bot.on('message:text', async (ctx, next) => {
   const telegramId = ctx.from?.id;
   if (!telegramId || ctx.message.text.startsWith('/')) return next();
@@ -113,13 +201,10 @@ bot.on('message:text', async (ctx, next) => {
   const { data: user } = await supabase.from('users').select('*').eq('telegram_id', telegramId).single();
   if (!user || !user.bot_state) return next();
 
-  console.log(`[Bot] User ${telegramId} state: ${user.bot_state}, message: ${ctx.message.text}`);
-
   if (user.bot_state === 'WAITING_AGE') {
     const age = parseInt(ctx.message.text);
     if (isNaN(age)) return ctx.reply('Iltimos, yoshingizni raqamda kiriting:');
     
-    console.log(`[Bot] Saving age ${age} for user ${telegramId}`);
     const { error } = await supabase.from('users').update({ 
       age, 
       bot_state: 'WAITING_GENDER' 
@@ -135,14 +220,9 @@ bot.on('message:text', async (ctx, next) => {
   }
 
   if (user.bot_state === 'WAITING_ADDRESS') {
-    console.log(`[Bot] Saving address for user ${telegramId}`);
     await supabase.from('users').update({ address: ctx.message.text, bot_state: null }).eq('id', user.id);
     
-    const keyboard = new InlineKeyboard()
-      .webApp('📚 Ilovani ochish', WEBAPP_URL)
-      .row()
-      .text('⭐ Premium olish', 'buy_premium')
-      .text('💎 Ultra olish', 'buy_ultra');
+    const keyboard = buildMainKeyboard(user.subscription);
 
     return ctx.reply(
       `🎓 *Rahmat!* Ma'lumotlaringiz saqlandi.\n\nIngliz tilini o'rganishni boshlaymizmi? Pastdagi tugmani bosib ilovani oching!`,
@@ -162,13 +242,26 @@ bot.callbackQuery(/^gender_(m|f)$/, async (ctx) => {
   await ctx.reply('Iltimos, manzilingizni kiriting (Masalan: Toshkent shahar):');
 });
 
-// Premium/Ultra purchase flow
+// ───── Purchase flow with dynamic pricing ─────
 bot.callbackQuery('buy_premium', async (ctx) => {
-  await handleBuyFlow(ctx, 'premium', '29,000');
+  const { data: user } = await supabase.from('users').select('*').eq('telegram_id', ctx.from?.id).single();
+  if (user?.subscription === 'ultra') {
+    return ctx.answerCallbackQuery('Sizda allaqachon Ultra tarif mavjud!');
+  }
+  if (user?.subscription === 'premium') {
+    return ctx.answerCallbackQuery('Sizda allaqachon Premium tarif mavjud!');
+  }
+  const prices = await getPrices();
+  await handleBuyFlow(ctx, 'premium', prices.premium.toLocaleString());
 });
 
 bot.callbackQuery('buy_ultra', async (ctx) => {
-  await handleBuyFlow(ctx, 'ultra', '49,000');
+  const { data: user } = await supabase.from('users').select('*').eq('telegram_id', ctx.from?.id).single();
+  if (user?.subscription === 'ultra') {
+    return ctx.answerCallbackQuery('Sizda allaqachon Ultra tarif mavjud!');
+  }
+  const prices = await getPrices();
+  await handleBuyFlow(ctx, 'ultra', prices.ultra.toLocaleString());
 });
 
 async function handleBuyFlow(ctx: any, plan: string, price: string) {
@@ -187,11 +280,10 @@ async function handleBuyFlow(ctx: any, plan: string, price: string) {
     { parse_mode: 'Markdown' }
   );
   
-  // Set user state to waiting for screenshot
   await supabase.from('users').update({ referred_by: `pending_${plan}` }).eq('telegram_id', ctx.from?.id);
 }
 
-// Handle photo uploads (payment screenshots)
+// ───── Photo uploads (payment screenshots) ─────
 bot.on('message:photo', async (ctx) => {
   const telegramId = ctx.from?.id;
   if (!telegramId) return;
@@ -199,39 +291,37 @@ bot.on('message:photo', async (ctx) => {
   const { data: user } = await supabase.from('users').select('*').eq('telegram_id', telegramId).single();
   if (!user) return;
 
-  // Get the largest photo
   const photo = ctx.message.photo[ctx.message.photo.length - 1];
   const file = await ctx.api.getFile(photo.file_id);
   const fileUrl = `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${file.file_path}`;
 
-  // Determine plan from pending state or default to premium
   let plan = 'premium';
   if (user.referred_by?.startsWith('pending_')) {
     plan = user.referred_by.replace('pending_', '');
     await supabase.from('users').update({ referred_by: user.referral_code ? undefined : null }).eq('id', user.id);
   }
 
-  // Save payment
+  const prices = await getPrices();
+  const amount = plan === 'ultra' ? prices.ultra : prices.premium;
+
   const { data: payment } = await supabase.from('payments').insert({
     user_id: user.id,
     plan,
-    amount: plan === 'ultra' ? 49000 : 29000,
+    amount,
     screenshot_url: fileUrl,
     status: 'pending',
   }).select().single();
 
   await ctx.reply('✅ To\'lovingiz qabul qilindi va admin tekshirmoqda. Tez orada javob beramiz! ⏳');
 
-  // Notify admin
   if (ADMIN_CHAT_ID) {
     const adminKeyboard = new InlineKeyboard()
       .text('✅ Tasdiqlash', `approve_${payment?.id}`)
       .text('❌ Rad etish', `reject_${payment?.id}`);
 
     try {
-      // Forward the screenshot to admin
       await ctx.api.sendPhoto(ADMIN_CHAT_ID, photo.file_id, {
-        caption: `💰 *Yangi to'lov*\n\n👤 ${ctx.from?.first_name} (@${ctx.from?.username})\n🆔 TG: ${telegramId}\n📦 Paket: *${plan.toUpperCase()}*\n💵 Summa: ${plan === 'ultra' ? '49,000' : '29,000'} so'm`,
+        caption: `💰 *Yangi to'lov*\n\n👤 ${ctx.from?.first_name} (@${ctx.from?.username})\n🆔 TG: ${telegramId}\n📦 Paket: *${plan.toUpperCase()}*\n💵 Summa: ${amount.toLocaleString()} so'm`,
         parse_mode: 'Markdown',
         reply_markup: adminKeyboard,
       });
@@ -241,26 +331,30 @@ bot.on('message:photo', async (ctx) => {
   }
 });
 
-// Admin approve/reject callbacks
+// ───── Admin approve/reject ─────
 bot.callbackQuery(/^approve_(.+)$/, async (ctx) => {
   const paymentId = ctx.match![1];
   
   const { data: payment } = await supabase.from('payments').select('*').eq('id', paymentId).single();
   if (!payment) return ctx.answerCallbackQuery('To\'lov topilmadi');
 
-  // Update payment
   await supabase.from('payments').update({ status: 'approved', processed_at: new Date().toISOString() }).eq('id', paymentId);
   
-  // Update user subscription
   const expiresAt = new Date();
   expiresAt.setMonth(expiresAt.getMonth() + 1);
-  await supabase.from('users').update({ subscription: payment.plan, subscription_expires_at: expiresAt.toISOString() }).eq('id', payment.user_id);
+  await supabase.from('users').update({ 
+    subscription: payment.plan, 
+    subscription_expires_at: expiresAt.toISOString() 
+  }).eq('id', payment.user_id);
 
-  // Notify user
   const { data: user } = await supabase.from('users').select('telegram_id').eq('id', payment.user_id).single();
   if (user) {
     try {
-      await ctx.api.sendMessage(user.telegram_id, `🎉 To'lovingiz tasdiqlandi!\n\n✅ Sizning *${payment.plan.toUpperCase()}* paketingiz faollashtirildi.\n📅 Amal qilish muddati: 1 oy\n\nIlovani oching va barcha premium kontentdan foydalaning! 🚀`, { parse_mode: 'Markdown' });
+      const keyboard = buildMainKeyboard(payment.plan);
+      await ctx.api.sendMessage(user.telegram_id, 
+        `🎉 To'lovingiz tasdiqlandi!\n\n✅ Sizning *${payment.plan.toUpperCase()}* paketingiz faollashtirildi.\n📅 Amal qilish muddati: 1 oy\n\nIlovani oching va barcha premium kontentdan foydalaning! 🚀`, 
+        { parse_mode: 'Markdown', reply_markup: keyboard }
+      );
     } catch {}
   }
 
@@ -285,24 +379,14 @@ bot.callbackQuery(/^reject_(.+)$/, async (ctx) => {
   await ctx.editMessageCaption({ caption: oldCaption + '\n\n❌ RAD ETILGAN', parse_mode: 'Markdown' });
 });
 
-// /premium command
-bot.command('premium', async (ctx) => {
-  await handleBuyFlow(ctx, 'premium', '29,000');
-});
-
-bot.command('ultra', async (ctx) => {
-  await handleBuyFlow(ctx, 'ultra', '49,000');
-});
-
-// Admin: upload movie video with caption #kino_CODE
+// ───── Admin: Upload movie video with #kino_CODE ─────
 bot.on('message:video', async (ctx) => {
   const telegramId = ctx.from?.id;
   if (!telegramId) return;
 
   // Check if admin
   if (telegramId.toString() !== ADMIN_CHAT_ID) {
-    // Not admin - ignore video messages from regular users (payment screenshots are photos)
-    return;
+    return; // Ignore non-admin video uploads
   }
 
   const caption = ctx.message.caption || '';
@@ -312,7 +396,6 @@ bot.on('message:video', async (ctx) => {
     const movieCode = match[1];
     const fileId = ctx.message.video.file_id;
     
-    // Save file_id to database
     const { data: movie, error } = await supabase
       .from('movies')
       .update({ telegram_file_id: fileId })
@@ -323,22 +406,117 @@ bot.on('message:video', async (ctx) => {
     if (movie) {
       await ctx.reply(`✅ Kino saqlandi!\n\n🎬 *${movie.title}*\n📝 Kod: \`${movieCode}\`\n\nEndi userlar "Telegramda ko'rish" tugmasini bosganida bu kino ularga jo'natiladi.`, { parse_mode: 'Markdown' });
     } else {
-      // Movie not found — create a new entry or report error
       await ctx.reply(`❌ "${movieCode}" kodli kino topilmadi bazada.\n\nAvval admin panelda kinoni qo'shing va telegram kodi sifatida \`${movieCode}\` kiriting.`, { parse_mode: 'Markdown' });
     }
+  } else {
+    // Admin sent video without #kino_ caption
+    await ctx.reply('ℹ️ Kinoni saqlash uchun video tagiga izoh qilib `#kino_KODINGIZ` yozing.\n\nMasalan: `#kino_venom3`', { parse_mode: 'Markdown' });
   }
 });
 
-// /status command
+// ───── /premium, /ultra, /status ─────
+bot.command('premium', async (ctx) => {
+  const prices = await getPrices();
+  await handleBuyFlow(ctx, 'premium', prices.premium.toLocaleString());
+});
+
+bot.command('ultra', async (ctx) => {
+  const prices = await getPrices();
+  await handleBuyFlow(ctx, 'ultra', prices.ultra.toLocaleString());
+});
+
 bot.command('status', async (ctx) => {
   const { data: user } = await supabase.from('users').select('*').eq('telegram_id', ctx.from?.id).single();
   if (!user) return ctx.reply('Avval /start bosing');
   
   const sub = user.subscription === 'ultra' ? '💎 Ultra' : user.subscription === 'premium' ? '⭐ Premium' : '🆓 Free';
-  await ctx.reply(`📊 *Sizning hisobingiz*\n\n${sub}\n🤖 AI xabarlar bugun: ${user.ai_messages_today}\n💰 Jami AI kredit: ${user.ai_credits_used}`, { parse_mode: 'Markdown' });
+  let expiryText = '';
+  if (user.subscription_expires_at && user.subscription !== 'free') {
+    const exp = new Date(user.subscription_expires_at);
+    expiryText = `\n📅 Tugash sanasi: ${exp.toLocaleDateString('uz-UZ')}`;
+  }
+  await ctx.reply(`📊 *Sizning hisobingiz*\n\n${sub}${expiryText}\n🤖 AI xabarlar bugun: ${user.ai_messages_today}\n💰 Jami AI kredit: ${user.ai_credits_used}`, { parse_mode: 'Markdown' });
 });
 
-// Start bot
+// ───── Subscription expiry reminder (runs every 6 hours) ─────
+async function checkExpiringSubscriptions() {
+  try {
+    const threeDaysFromNow = new Date();
+    threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    // Find users whose subscription expires in exactly 3 days (± 1 day window)
+    const threeDaysStart = new Date(threeDaysFromNow);
+    threeDaysStart.setHours(0, 0, 0, 0);
+    const threeDaysEnd = new Date(threeDaysFromNow);
+    threeDaysEnd.setHours(23, 59, 59, 999);
+
+    const { data: expiringUsers } = await supabase
+      .from('users')
+      .select('*')
+      .in('subscription', ['premium', 'ultra'])
+      .gte('subscription_expires_at', threeDaysStart.toISOString())
+      .lte('subscription_expires_at', threeDaysEnd.toISOString());
+
+    if (expiringUsers) {
+      for (const user of expiringUsers) {
+        // Check if we already sent a reminder today
+        const lastReminder = user.last_expiry_reminder ? new Date(user.last_expiry_reminder) : null;
+        if (lastReminder && lastReminder >= today) continue; // Already reminded today
+
+        try {
+          const sub = user.subscription === 'ultra' ? '💎 Ultra' : '⭐ Premium';
+          const prices = await getPrices();
+          const price = user.subscription === 'ultra' ? prices.ultra : prices.premium;
+          
+          await bot.api.sendMessage(user.telegram_id,
+            `⏰ *Eslatma!*\n\n` +
+            `Sizning ${sub} tarifingiz *3 kun*dan keyin tugaydi.\n\n` +
+            `💰 Yangilash narxi: ${price.toLocaleString()} so'm/oy\n\n` +
+            `Tarifni uzaytirish uchun to'lov qiling va screenshotni shu chatga yuboring!`,
+            { parse_mode: 'Markdown' }
+          );
+
+          await supabase.from('users').update({ 
+            last_expiry_reminder: new Date().toISOString() 
+          }).eq('id', user.id);
+        } catch (e) {
+          console.error('Failed to send reminder to', user.telegram_id, e);
+        }
+      }
+    }
+
+    // Also expire overdue subscriptions
+    const { data: expiredUsers } = await supabase
+      .from('users')
+      .select('*')
+      .in('subscription', ['premium', 'ultra'])
+      .lt('subscription_expires_at', today.toISOString());
+
+    if (expiredUsers) {
+      for (const user of expiredUsers) {
+        await supabase.from('users').update({ subscription: 'free' }).eq('id', user.id);
+        try {
+          await bot.api.sendMessage(user.telegram_id,
+            `⚠️ Sizning tarifingiz tugadi.\n\nYangilash uchun /premium yoki /ultra buyruqlarini yuboring.`
+          );
+        } catch {}
+      }
+    }
+  } catch (e) {
+    console.error('Expiry check error:', e);
+  }
+}
+
+// Run expiry check every 6 hours
+setInterval(checkExpiringSubscriptions, 6 * 60 * 60 * 1000);
+// Also run once on startup after 10 seconds
+setTimeout(checkExpiringSubscriptions, 10000);
+
+// ───── Start bot ─────
 bot.start();
 console.log('🤖 Bot started!');
-

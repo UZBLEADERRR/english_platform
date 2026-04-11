@@ -229,12 +229,13 @@ export default function MovieDetail() {
             </div>
           </div>
         ) : showPlayer && canWatch ? (
-          <div 
-            ref={playerContainerRef} 
-            className="relative aspect-video w-full md:rounded-2xl overflow-hidden bg-black shadow-xl cursor-pointer group"
-            onClick={resetControlsTimer} 
-            onMouseMove={resetControlsTimer}
-          >
+          <div className="-mx-4 md:mx-0">
+            <div 
+              ref={playerContainerRef} 
+              className="relative aspect-video w-[100vw] md:w-full md:rounded-2xl overflow-hidden bg-black shadow-xl cursor-pointer group"
+              onClick={resetControlsTimer} 
+              onMouseMove={resetControlsTimer}
+            >
             {isDirectVideo ? (
               <>
                 <video
@@ -314,6 +315,7 @@ export default function MovieDetail() {
             ) : (
               <iframe src={embedUrl} className="w-full h-full border-none" allowFullScreen allow="autoplay; fullscreen; encrypted-media" />
             )}
+            </div>
           </div>
         ) : (
           <div className="relative aspect-[2/3] max-h-[400px] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl mx-auto ring-1 ring-white/10">

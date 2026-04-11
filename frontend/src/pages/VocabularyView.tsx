@@ -60,9 +60,9 @@ export default function VocabularyView() {
         </div>
       </div>
 
-      <div className="space-y-3 px-4 max-w-2xl mx-auto">
+      <div className="space-y-2 md:space-y-3 px-0 md:px-4 max-w-2xl mx-auto">
       {words.length === 0 ? (
-        <div className="text-center py-12 bg-surface rounded-3xl border border-theme">
+        <div className="text-center py-12 bg-surface md:rounded-3xl border-y md:border border-theme mx-4 md:mx-0">
           <BookOpen className="w-12 h-12 mx-auto text-muted mb-3" />
           <p className="text-muted">Hozircha so'zlar yo'q</p>
         </div>
@@ -70,7 +70,7 @@ export default function VocabularyView() {
         words.map(w => (
           <div 
             key={w.id} 
-            className="bg-surface border border-theme rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg"
+            className="bg-surface border-y md:border border-theme md:rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg"
           >
             {/* Main word row */}
             <div 

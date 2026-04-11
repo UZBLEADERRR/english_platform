@@ -4,6 +4,35 @@ import { adminAuth } from '../middleware.js';
 
 export const usersRouter = Router();
 
+// Login with Telegram ID + code (from bot)
+usersRouter.post('/login-code', async (req, res) => {
+  const { telegram_id, code } = req.body;
+  if (!telegram_id || !code) return res.status(400).json({ error: 'telegram_id va code kerak' });
+
+  const { data: loginCode } = await supabase
+    .from('login_codes')
+    .select('*')
+    .eq('telegram_id', parseInt(telegram_id))
+    .eq('code', code)
+    .single();
+
+  if (!loginCode) return res.status(401).json({ error: 'Kod noto\'g\'ri yoki topilmadi' });
+
+  // Check expiry
+  if (new Date(loginCode.expires_at) < new Date()) {
+    return res.status(401).json({ error: 'Kod muddati tugagan. Botdan yangi kod oling.' });
+  }
+
+  // Get user
+  const { data: user } = await supabase.from('users').select('*').eq('id', loginCode.user_id).single();
+  if (!user) return res.status(404).json({ error: 'Foydalanuvchi topilmadi' });
+
+  // Delete used code
+  await supabase.from('login_codes').delete().eq('id', loginCode.id);
+
+  res.json(user);
+});
+
 // Admin: Get all users
 usersRouter.get('/admin/all', adminAuth, async (req, res) => {
   const page = parseInt(req.query.page as string) || 1;

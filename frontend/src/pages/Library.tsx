@@ -25,31 +25,27 @@ export default function Library() {
   }, []);
 
   return (
-    <div className="space-y-4 page-enter max-w-2xl mx-auto">
-
-      <div className="grid grid-cols-2 gap-4">
+    <div className="page-enter max-w-2xl mx-auto -mx-4 md:mx-auto pb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-0 border-y border-theme bg-surface overflow-hidden md:rounded-3xl md:border md:gap-4 md:bg-transparent md:p-4">
         {books.map(book => (
-          <div key={book.id} className="group relative bg-surface rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 border border-theme hover:border-primary/30 hover:-translate-y-1">
-            {/* Cover Image */}
-            <div className="aspect-[3/4] relative overflow-hidden">
-              <img src={book.cover_url} alt={book.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              
-              {/* Title overlay on image */}
-              <div className="absolute bottom-0 left-0 right-0 p-3">
-                <p className="font-bold text-white text-sm line-clamp-2 drop-shadow-lg">{book.title}</p>
-                <p className="text-white/70 text-xs mt-0.5">{book.author}</p>
-              </div>
+          <div key={book.id} className="group relative bg-surface md:rounded-2xl overflow-hidden border-r border-b border-theme md:border md:shadow-md hover:shadow-2xl transition-all duration-300 md:hover:-translate-y-1 pb-3">
+             <div className="aspect-[3/4] relative overflow-hidden bg-elevated w-full">
+              <img src={book.cover_url} alt={book.title} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" referrerPolicy="no-referrer" />
+              <div className="absolute inset-0 ring-1 ring-inset ring-black/10 pointer-events-none" />
             </div>
             
-            {/* Action button */}
+            <div className="px-3 pt-3 flex flex-col items-center justify-center text-center">
+              <p className="font-extrabold text-main text-sm line-clamp-1">{book.title}</p>
+              <p className="text-muted text-[11px] font-medium mt-0.5">{book.author}</p>
+            </div>
+            
             {book.pdf_url && (
-              <div className="p-3">
+              <div className="mt-3 px-3">
                 <button 
                   onClick={() => setViewingBook(book)} 
-                  className="w-full py-2.5 bg-gradient-to-r from-primary/20 to-blue-500/20 border border-primary/30 text-primary text-sm font-bold rounded-xl flex items-center justify-center gap-2 hover:from-primary/30 hover:to-blue-500/30 transition-all"
+                  className="w-full py-2 bg-primary/10 text-primary text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 hover:bg-primary/20 transition-all active:scale-95"
                 >
-                  <Eye className="w-4 h-4" /> Ochish
+                  <Eye className="w-3.5 h-3.5" /> O'qish
                 </button>
               </div>
             )}
