@@ -10,6 +10,7 @@ export default function Library() {
   const { setIsNavbarHidden } = useAppStore();
   const [books, setBooks] = useState<any[]>([]);
   const [viewingBook, setViewingBook] = useState<any>(null);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
 
   useEffect(() => {
     setIsNavbarHidden(true);
@@ -24,6 +25,10 @@ export default function Library() {
       ]);
     });
   }, []);
+
+  useEffect(() => {
+    if (viewingBook) setIframeLoaded(false);
+  }, [viewingBook]);
 
   const openExternal = (url: string) => {
     const tg = (window as any).Telegram?.WebApp;
@@ -73,33 +78,59 @@ export default function Library() {
       {/* In-app PDF/URL viewer */}
       {viewingBook && createPortal(
         <div className="fixed inset-0 z-[9999] flex flex-col animate-in slide-in-from-bottom-4 duration-300 pointer-events-auto bg-bg">
-          <div className="h-14 bg-surface/95 backdrop-blur-xl border-b border-theme flex items-center justify-between px-4 shrink-0">
+          <div className="h-16 bg-surface/95 backdrop-blur-xl border-b border-theme flex items-center justify-between px-4 shrink-0">
             <div className="flex items-center gap-2 flex-1 min-w-0">
-              <BookOpen className="w-4 h-4 text-primary shrink-0" />
-              <h2 className="font-bold text-main text-sm truncate">{viewingBook.title}</h2>
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-bold text-main text-sm truncate">{viewingBook.title}</h2>
+                <p className="text-[10px] text-muted truncate">{viewingBook.author}</p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => openExternal(viewingBook.pdf_url)} className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors">
-                <ExternalLink className="w-5 h-5" />
+              <button 
+                onClick={() => openExternal(viewingBook.pdf_url)} 
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-lg transition-all"
+              >
+                <ExternalLink className="w-3.5 h-3.5" /> Brauzer
               </button>
               <button onClick={() => setViewingBook(null)} className="p-2 text-muted hover:text-main transition-colors">
-                <X className="w-5 h-5" />
+                <X className="w-6 h-6" />
               </button>
             </div>
           </div>
-          <div className="flex-1 overflow-hidden bg-white relative">
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-0 bg-surface">
-              <BookOpen className="w-12 h-12 text-muted mb-3" />
-              <p className="text-muted text-sm max-w-xs mb-4">Agar PDF fayl qurilmangizda ochilmasa, tashqi brauzerda ochish tugmasini bosing.</p>
-              <button onClick={() => openExternal(viewingBook.pdf_url)} className="px-4 py-2 bg-primary text-white rounded-lg text-sm flex items-center justify-center gap-2 shadow-lg">
-                <ExternalLink className="w-4 h-4" /> Brauzerda ochish
-              </button>
-            </div>
+          
+          <div className="flex-1 overflow-hidden bg-bg relative">
+            {!iframeLoaded && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-bg">
+                <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
+                <p className="text-main font-bold">Yuklanmoqda...</p>
+                <p className="text-muted text-xs mt-2 max-w-[240px]">Agar PDF ochilmasa, yuqoridagi 'Brauzer' tugmasini bosing.</p>
+              </div>
+            )}
+            
             <iframe 
               src={viewingBook.pdf_url} 
-              className="w-full h-full border-none relative z-10 bg-transparent"
+              className={`w-full h-full border-none relative z-10 transition-opacity duration-300 ${iframeLoaded ? 'opacity-100' : 'opacity-0'}`}
               title={viewingBook.title}
+              onLoad={() => setIframeLoaded(true)}
             />
+
+            {/* Hidden fallback content that becomes visible if iframe is transparent/blocks */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center -z-10">
+               <div className="w-20 h-20 bg-elevated rounded-3xl flex items-center justify-center mb-6 shadow-xl">
+                 <BookOpen className="w-10 h-10 text-muted" />
+               </div>
+               <h3 className="text-xl font-bold text-main mb-2">PDF ochilmadi?</h3>
+               <p className="text-muted text-sm mb-8 max-w-[280px]">Ba'zi telefonlarda PDF ilova ichida ko'rinmasligi mumkin. Iltimos, tashqi brauzerda oching.</p>
+               <button 
+                 onClick={() => openExternal(viewingBook.pdf_url)}
+                 className="w-full max-w-[240px] py-4 bg-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+               >
+                 <ExternalLink className="w-5 h-5" /> Brauzerda ochish
+               </button>
+            </div>
           </div>
         </div>
       , document.body)}

@@ -7,9 +7,24 @@ export default function LibraryPage() {
   const [form, setForm] = useState({ title: '', author: '', cover_url: '', pdf_url: '' });
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const load = () => adminApi.get('/api/library/admin/all').then(setBooks).catch(() => {});
   useEffect(() => { load(); }, []);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const res = await adminApi.uploadFile(file);
+      setForm({ ...form, pdf_url: res.url });
+    } catch (e: any) {
+      alert('Yuklashda xatolik: ' + e.message);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const save = async () => {
     if (!form.title) return;
@@ -38,7 +53,15 @@ export default function LibraryPage() {
           <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="Kitob nomi" className="input" />
           <input value={form.author} onChange={e => setForm({...form, author: e.target.value})} placeholder="Muallif" className="input" />
           <input value={form.cover_url} onChange={e => setForm({...form, cover_url: e.target.value})} placeholder="Muqova rasm URL" className="input" />
-          <input value={form.pdf_url} onChange={e => setForm({...form, pdf_url: e.target.value})} placeholder="PDF fayl URL" className="input" />
+          
+          <div className="flex gap-2">
+            <input value={form.pdf_url} onChange={e => setForm({...form, pdf_url: e.target.value})} placeholder="PDF fayl URL" className="input flex-1" />
+            <label className="btn-secondary text-xs flex items-center justify-center cursor-pointer min-w-[100px]">
+              {uploading ? '⏳ Kuting...' : 'PDF Yuklash'}
+              <input type="file" accept="application/pdf" className="hidden" onChange={handleFileUpload} disabled={uploading} />
+            </label>
+          </div>
+
           <button onClick={save} className="btn-primary w-full">{editId ? 'Saqlash' : 'Qo\'shish'}</button>
         </div>
       )}
