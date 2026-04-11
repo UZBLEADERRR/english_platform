@@ -12,11 +12,12 @@ CREATE TABLE IF NOT EXISTS public.login_codes (
   created_at timestamptz DEFAULT now()
 );
 
--- 2. Movies jadvaliga telegram ustunlari
+-- 2. Movies jadvaliga barcha kerakli ustunlar
+ALTER TABLE public.movies ADD COLUMN IF NOT EXISTS info_html text;
 ALTER TABLE public.movies ADD COLUMN IF NOT EXISTS telegram_code text;
 ALTER TABLE public.movies ADD COLUMN IF NOT EXISTS telegram_file_id text;
 
--- 3. Users jadvaliga yangi ustunlar (agar yo'q bo'lsa)
+-- 3. Users jadvaliga yangi ustunlar
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS last_expiry_reminder timestamptz;
 
 -- 4. Vocabulary words jadvali
@@ -33,7 +34,7 @@ CREATE TABLE IF NOT EXISTS public.vocabulary_words (
 );
 CREATE INDEX IF NOT EXISTS vocabulary_words_topic_id_idx ON public.vocabulary_words(topic_id);
 
--- 5. RLS disable for login_codes (server uses service_role key)
+-- 5. RLS for login_codes
 ALTER TABLE public.login_codes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow all for service role" ON public.login_codes FOR ALL USING (true) WITH CHECK (true);
 

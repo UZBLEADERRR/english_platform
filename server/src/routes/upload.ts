@@ -18,11 +18,12 @@ uploadRouter.post('/file', adminAuth, upload.single('file'), async (req, res) =>
   const zone = process.env.BUNNY_STORAGE_ZONE;
   const apiKey = process.env.BUNNY_STORAGE_API_KEY;
   const pullZoneUrl = process.env.BUNNY_PULL_ZONE_URL;
+  const storageHost = process.env.BUNNY_STORAGE_HOST || 'storage.bunnycdn.com';
 
   if (!zone || !apiKey) return res.status(500).json({ error: 'Bunny konfiguratsiyasi topilmadi' });
 
   const safeName = `${Date.now()}_${originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-  const url = `https://storage.bunnycdn.com/${zone}/${safeName}`;
+  const url = `https://${storageHost}/${zone}/${safeName}`;
 
   try {
     const response = await fetch(url, {
