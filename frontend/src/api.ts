@@ -48,6 +48,8 @@ class ApiClient {
   
   // Lessons
   getLessonElements(topicId: string) { return this.get(`/api/lessons/${topicId}`); }
+  completeTopic(id: string) { return this.post(`/api/topics/${id}/complete`); }
+  getUserProgress(userId: string) { return this.get(`/api/topics/progress/${userId}`); }
   
   // Movies
   getMovies() { return this.get('/api/movies'); }

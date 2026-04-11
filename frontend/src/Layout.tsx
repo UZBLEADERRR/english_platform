@@ -181,7 +181,28 @@ export default function Layout() {
             <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-elevated transition-colors">
               <ArrowLeft className="w-5 h-5 text-main" />
             </button>
-            <h1 className="text-lg font-bold text-main truncate">{sectionName}</h1>
+            <h1 className="text-lg font-bold text-main truncate flex-1">{sectionName}</h1>
+            
+            {/* "Tugatdim" button for lessons */}
+            {location.pathname.startsWith('/lesson/') && (
+              <button 
+                onClick={async () => {
+                  const topicId = location.pathname.split('/').pop();
+                  if (topicId) {
+                    try {
+                      await api.completeTopic(topicId);
+                      navigate(-1);
+                    } catch (e) {
+                      console.error('Completion error', e);
+                      navigate(-1); // Navigate back anyway
+                    }
+                  }
+                }}
+                className="px-4 py-1.5 bg-green-500 text-white text-xs font-bold rounded-full shadow-lg shadow-green-500/20 active:scale-95 transition-all"
+              >
+                Tugatdim
+              </button>
+            )}
           </div>
         </div>
       )}
