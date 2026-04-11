@@ -2,15 +2,43 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from './i18n';
 import { useAppStore } from './store';
-import { Home, Box, Film as Video, Bot, User } from 'lucide-react';
+import { Home, Box, Film as Video, Bot, User, ArrowLeft } from 'lucide-react';
 import api from './api';
 import { cn } from './utils';
 
 export { cn };
 
+// Section routes that should hide navbar and show section header
+const sectionRoutes: { pattern: RegExp; name: string }[] = [
+  { pattern: /^\/category\//, name: '' }, // dynamic name from path
+  { pattern: /^\/level\//, name: 'Mavzular' },
+  { pattern: /^\/lesson\//, name: 'Dars' },
+  { pattern: /^\/movies$/, name: 'Movies' },
+  { pattern: /^\/movie\//, name: 'Kino' },
+  { pattern: /^\/comics$/, name: 'Comics' },
+  { pattern: /^\/comic\//, name: 'Komiks' },
+  { pattern: /^\/songs$/, name: 'Songs' },
+  { pattern: /^\/library$/, name: 'Library' },
+  { pattern: /^\/grammar-checker$/, name: 'Grammar Checker' },
+  { pattern: /^\/tips$/, name: 'Tips' },
+  { pattern: /^\/pricing$/, name: 'Tariflar' },
+  { pattern: /^\/vocabulary\//, name: 'Vocabulary' },
+];
+
+const getCategoryName = (path: string): string => {
+  const catNames: Record<string, string> = {
+    grammar: 'Grammar', vocabulary: 'Vocabulary', reading: 'Reading',
+    listening: 'Listening', writing: 'Writing', speaking: 'Speaking',
+  };
+  const match = path.match(/^\/category\/(.+)/);
+  if (match) return catNames[match[1]] || match[1];
+  return '';
+};
+
 export default function Layout() {
   const t = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, setUser, isNavbarHidden: isHiddenByStore, setIsNavbarHidden } = useAppStore();
   const [showReg, setShowReg] = useState(false);
   const [regData, setRegData] = useState({ first_name: '', age: '', gender: '' });
@@ -19,6 +47,11 @@ export default function Layout() {
   useEffect(() => {
     setIsNavbarHidden(false);
   }, [location.pathname, setIsNavbarHidden]);
+
+  // Determine if current route is a section page  
+  const matchedSection = sectionRoutes.find(s => s.pattern.test(location.pathname));
+  const isInSection = !!matchedSection;
+  const sectionName = matchedSection?.name || getCategoryName(location.pathname);
 
   useEffect(() => {
     // Try Telegram WebApp init
@@ -108,7 +141,7 @@ export default function Layout() {
     { path: '/profile', label: t('profile'), icon: User },
   ];
 
-  const hideNavbar = isHiddenByStore;
+  const hideNavbar = isHiddenByStore || isInSection;
 
   const isFullBleed = /^\/(reels|ai-chat)$/i.test(location.pathname) || isHiddenByStore;
 
@@ -139,6 +172,18 @@ export default function Layout() {
       </nav>
       )}
 
+      {/* Section Header (replaces navbar in section pages) */}
+      {isInSection && !isHiddenByStore && (
+        <div className="fixed top-0 left-0 right-0 z-[100] bg-surface/95 backdrop-blur-xl border-b border-theme">
+          <div className="max-w-lg mx-auto flex items-center h-14 px-4 gap-3">
+            <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-elevated transition-colors">
+              <ArrowLeft className="w-5 h-5 text-main" />
+            </button>
+            <h1 className="text-lg font-bold text-main truncate">{sectionName}</h1>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <main 
         key={location.pathname}
@@ -146,7 +191,8 @@ export default function Layout() {
           "mx-auto flex flex-col relative page-enter w-full duration-500",
           isFullBleed ? "flex-1 h-[calc(100dvh)] pt-[60px]" : "flex-1 max-w-7xl px-4 pb-4 min-h-[100dvh]",
           !hideNavbar && !isFullBleed ? "pt-20" : "",
-          hideNavbar && !isFullBleed ? "pt-6" : ""
+          isInSection && !isHiddenByStore ? "pt-16" : "",
+          hideNavbar && !isInSection && !isFullBleed ? "pt-6" : ""
         )}
       >
         <Outlet />

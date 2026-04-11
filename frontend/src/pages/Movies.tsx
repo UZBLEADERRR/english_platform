@@ -42,10 +42,6 @@ export default function Movies() {
 
   return (
     <div className="space-y-5 animate-in fade-in duration-500">
-      <div className="flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-elevated"><ArrowLeft className="w-5 h-5 text-main" /></button>
-        <h1 className="text-xl font-bold text-main">{t('movies')}</h1>
-      </div>
 
       {/* Search */}
       <div className="relative">

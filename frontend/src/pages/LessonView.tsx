@@ -204,10 +204,6 @@ export default function LessonView() {
 
   return (
     <div className="space-y-2 animate-in slide-in-from-right-4 duration-300 max-w-2xl mx-auto pb-6">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-2 p-2 rounded-full hover:bg-elevated transition-colors text-main">
-        <ArrowLeft className="w-5 h-5" />
-        <span className="font-medium">Orqaga</span>
-      </button>
       
       {elements.map((el) => (
         <div key={el.id}>{renderElement(el)}</div>

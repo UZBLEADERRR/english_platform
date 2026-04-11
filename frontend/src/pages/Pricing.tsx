@@ -17,11 +17,24 @@ export default function Pricing() {
 
   useEffect(() => {
     api.getPaymentCards().then(c => { setCards(c); if (c.length) setSelectedCard(c[0].id); }).catch(() => {});
+    // Load dynamic pricing from API
+    api.get('/api/admin/pricing/public').then((data: any) => {
+      if (data && data.length) {
+        const premiumConfig = data.find((p: any) => p.id === 'premium');
+        const ultraConfig = data.find((p: any) => p.id === 'ultra');
+        if (premiumConfig) {
+          setPlans(prev => prev.map(p => p.id === 'premium' ? { ...p, price: `${premiumConfig.price.toLocaleString()} ${premiumConfig.currency || "so'm"}/oy`, apiPrice: premiumConfig.price } : p));
+        }
+        if (ultraConfig) {
+          setPlans(prev => prev.map(p => p.id === 'ultra' ? { ...p, price: `${ultraConfig.price.toLocaleString()} ${ultraConfig.currency || "so'm"}/oy`, apiPrice: ultraConfig.price } : p));
+        }
+      }
+    }).catch(() => {});
   }, []);
 
-  const plans = [
+  const [plans, setPlans] = useState([
     {
-      id: 'premium' as const, name: '⭐ Premium', price: "29,000 so'm/oy", color: 'from-yellow-500 to-orange-500',
+      id: 'premium' as const, name: '⭐ Premium', price: "29,000 so'm/oy", apiPrice: 29000, color: 'from-yellow-500 to-orange-500',
       emoji: '🏆',
       tagline: "Ingliz tilini o'rganishning eng yaxshi yo'li!",
       features: [
@@ -35,7 +48,7 @@ export default function Pricing() {
       ],
     },
     {
-      id: 'ultra' as const, name: '💎 Ultra', price: "49,000 so'm/oy", color: 'from-purple-500 to-pink-500',
+      id: 'ultra' as const, name: '💎 Ultra', price: "49,000 so'm/oy", apiPrice: 49000, color: 'from-purple-500 to-pink-500',
       emoji: '👑',
       tagline: 'CHEKSIZ IMKONIYATLAR — Eng yuqori daraja!',
       features: [
@@ -50,7 +63,7 @@ export default function Pricing() {
         '👑 Ultra badge — Profilizda maxsus nishon',
       ],
     },
-  ];
+  ]);
 
   const handleScreenshot = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
@@ -68,7 +81,7 @@ export default function Pricing() {
     try {
       await api.submitPayment({
         user_id: user.id, plan: selectedPlan, screenshot_url: screenshot.base64, card_id: selectedCard,
-        amount: selectedPlan === 'premium' ? 29000 : 49000,
+        amount: plans.find(p => p.id === selectedPlan)?.apiPrice || (selectedPlan === 'premium' ? 29000 : 49000),
       });
       setSubmitted(true);
     } catch (e: any) { alert(e.message || 'Xatolik yuz berdi'); } finally { setSubmitting(false); }
@@ -87,10 +100,6 @@ export default function Pricing() {
 
   return (
     <div className="space-y-6 page-enter max-w-lg mx-auto">
-      <div className="flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-elevated"><ArrowLeft className="w-5 h-5 text-main" /></button>
-        <h1 className="text-xl font-bold text-main">✨ Tarifni Tanlang</h1>
-      </div>
 
       {/* Hero */}
       <div className="text-center py-4">

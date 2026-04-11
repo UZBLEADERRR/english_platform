@@ -17,6 +17,7 @@ import ReferralsPage from './pages/ReferralsPage';
 import SongsPage from './pages/SongsPage';
 import LibraryPage from './pages/LibraryPage';
 import PricingPage from './pages/PricingPage';
+import VocabularyPage from './pages/VocabularyPage';
 
 function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [password, setPassword] = useState('');
@@ -78,6 +79,7 @@ function AdminLayout() {
     { path: '/songs', label: 'Qo\'shiqlar', icon: Film },
     { path: '/library', label: 'Kutubxona', icon: BookOpen },
     { path: '/pricing', label: 'Narxlar', icon: CreditCard },
+    { path: '/vocabulary', label: 'Vocabulary', icon: BookOpen },
   ];
 
   const handleLogout = () => { localStorage.removeItem('admin_token'); window.location.reload(); };
@@ -144,6 +146,7 @@ function AdminLayout() {
             <Route path="songs" element={<SongsPage />} />
             <Route path="library" element={<LibraryPage />} />
             <Route path="pricing" element={<PricingPage />} />
+            <Route path="vocabulary" element={<VocabularyPage />} />
           </Routes>
         </div>
       </main>

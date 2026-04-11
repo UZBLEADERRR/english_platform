@@ -14,8 +14,45 @@ bot.command('start', async (ctx) => {
   const telegramId = ctx.from?.id;
   if (!telegramId) return;
 
-  const startParam = ctx.match; // referral code
+  const startParam = ctx.match; // referral code or movie code
   
+  // Handle movie code: /start movie_XXXXX
+  if (startParam && startParam.startsWith('movie_')) {
+    const movieCode = startParam.replace('movie_', '');
+    const { data: movie } = await supabase
+      .from('movies')
+      .select('*')
+      .eq('telegram_code', movieCode)
+      .single();
+    
+    if (movie) {
+      // Check if user has subscription for locked movies
+      const { data: user } = await supabase.from('users').select('*').eq('telegram_id', telegramId).single();
+      if (movie.is_locked && (!user || (user.subscription !== 'premium' && user.subscription !== 'ultra'))) {
+        return ctx.reply('🔒 Bu kino faqat Premium/Ultra foydalanuvchilar uchun. Ilovadan Premium sotib oling!');
+      }
+      
+      // Try to send the movie file from the stored file_id
+      if (movie.telegram_file_id) {
+        try {
+          await ctx.replyWithVideo(movie.telegram_file_id, {
+            caption: `🎬 *${movie.title}*\n\n${movie.description || ''}`,
+            parse_mode: 'Markdown',
+          });
+          return;
+        } catch (e) {
+          console.error('Failed to send movie by file_id:', e);
+        }
+      }
+      
+      await ctx.reply(`🎬 *${movie.title}*\n\n${movie.description || ''}\n\n⚠️ Bu kino hali bot serveriga yuklanmagan. Admin yuklashi kerak.`, { parse_mode: 'Markdown' });
+      return;
+    } else {
+      await ctx.reply('❌ Kino topilmadi. Kod xato bo\'lishi mumkin.');
+      return;
+    }
+  }
+
   // Register or update user
   let { data: user } = await supabase
     .from('users')
@@ -257,6 +294,41 @@ bot.command('ultra', async (ctx) => {
   await handleBuyFlow(ctx, 'ultra', '49,000');
 });
 
+// Admin: upload movie video with caption #kino_CODE
+bot.on('message:video', async (ctx) => {
+  const telegramId = ctx.from?.id;
+  if (!telegramId) return;
+
+  // Check if admin
+  if (telegramId.toString() !== ADMIN_CHAT_ID) {
+    // Not admin - ignore video messages from regular users (payment screenshots are photos)
+    return;
+  }
+
+  const caption = ctx.message.caption || '';
+  const match = caption.match(/#kino_(\S+)/);
+  
+  if (match) {
+    const movieCode = match[1];
+    const fileId = ctx.message.video.file_id;
+    
+    // Save file_id to database
+    const { data: movie, error } = await supabase
+      .from('movies')
+      .update({ telegram_file_id: fileId })
+      .eq('telegram_code', movieCode)
+      .select()
+      .single();
+    
+    if (movie) {
+      await ctx.reply(`✅ Kino saqlandi!\n\n🎬 *${movie.title}*\n📝 Kod: \`${movieCode}\`\n\nEndi userlar "Telegramda ko'rish" tugmasini bosganida bu kino ularga jo'natiladi.`, { parse_mode: 'Markdown' });
+    } else {
+      // Movie not found — create a new entry or report error
+      await ctx.reply(`❌ "${movieCode}" kodli kino topilmadi bazada.\n\nAvval admin panelda kinoni qo'shing va telegram kodi sifatida \`${movieCode}\` kiriting.`, { parse_mode: 'Markdown' });
+    }
+  }
+});
+
 // /status command
 bot.command('status', async (ctx) => {
   const { data: user } = await supabase.from('users').select('*').eq('telegram_id', ctx.from?.id).single();
@@ -269,3 +341,4 @@ bot.command('status', async (ctx) => {
 // Start bot
 bot.start();
 console.log('🤖 Bot started!');
+

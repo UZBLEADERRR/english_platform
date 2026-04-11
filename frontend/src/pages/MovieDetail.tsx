@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
 import api from '../api';
-import { ArrowLeft, Play, Lock, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForward, Pause, ExternalLink, RotateCcw, Copy, Check } from 'lucide-react';
+import { Play, Lock, Volume2, VolumeX, Maximize, Minimize, SkipForward, Pause, MessageCircle } from 'lucide-react';
 import Hls from 'hls.js';
 import { cn } from '../utils';
 
@@ -28,10 +28,6 @@ export default function MovieDetail() {
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [hlsInstance, setHlsInstance] = useState<Hls | null>(null);
-  const [isFakeFullscreen, setIsFakeFullscreen] = useState(false);
-  const [isRotated, setIsRotated] = useState(false);
-  const [showCopyFeedback, setShowCopyFeedback] = useState(false);
-  const { setIsNavbarHidden } = useAppStore();
 
   const controlsTimeoutRef = useRef<any>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -89,6 +85,21 @@ export default function MovieDetail() {
       if (videoRef.current) videoRef.current.removeEventListener('loadedmetadata', setupInitialTime);
     };
   }, [movie?.video_url, showPlayer]);
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFSChange = () => {
+      const doc = document as any;
+      const isFS = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
+      setIsFullscreen(isFS);
+    };
+    document.addEventListener('fullscreenchange', handleFSChange);
+    document.addEventListener('webkitfullscreenchange', handleFSChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFSChange);
+      document.removeEventListener('webkitfullscreenchange', handleFSChange);
+    };
+  }, []);
 
   // Auto-hide controls
   const resetControlsTimer = () => {
@@ -151,33 +162,16 @@ export default function MovieDetail() {
 
     if (!isFS) {
       if (container.requestFullscreen) container.requestFullscreen().catch(() => video.requestFullscreen?.());
-      else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen();
-      else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
-      else if (container.msRequestFullscreen) container.msRequestFullscreen();
+      else if ((container as any).webkitRequestFullscreen) (container as any).webkitRequestFullscreen();
+      else if ((video as any).webkitEnterFullscreen) (video as any).webkitEnterFullscreen();
+      else if ((container as any).msRequestFullscreen) (container as any).msRequestFullscreen();
       else if (video.requestFullscreen) video.requestFullscreen();
-      setIsFullscreen(true);
     } else {
       if (doc.exitFullscreen) doc.exitFullscreen();
       else if (doc.webkitExitFullscreen) doc.webkitExitFullscreen();
       else if (doc.mozCancelFullScreen) doc.mozCancelFullScreen();
       else if (doc.msExitFullscreen) doc.msExitFullscreen();
-      setIsFullscreen(false);
     }
-  };
-
-  const toggleFakeFullscreen = () => {
-    const newState = !isFakeFullscreen;
-    setIsFakeFullscreen(newState);
-    setIsNavbarHidden(newState);
-    if (!newState) setIsRotated(false);
-  };
-
-  const copyLink = () => {
-    if (!movie?.video_url) return;
-    navigator.clipboard.writeText(movie.video_url).then(() => {
-      setShowCopyFeedback(true);
-      setTimeout(() => setShowCopyFeedback(false), 2000);
-    });
   };
 
   const formatTime = (s: number) => {
@@ -193,6 +187,13 @@ export default function MovieDetail() {
     if (Math.floor(t) % 5 === 0) {
       try { localStorage.setItem(`movieProgress_${movie.id}`, t.toString()); } catch(e){}
     }
+  };
+
+  const openInTelegram = () => {
+    if (!movie?.telegram_code) return;
+    // Open Telegram bot with movie code
+    const botUsername = 'Teacher_Tuxum_Bot';
+    window.open(`https://t.me/${botUsername}?start=movie_${movie.telegram_code}`, '_blank');
   };
 
   if (!movie) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
@@ -216,11 +217,8 @@ export default function MovieDetail() {
 
   return (
     <div className="min-h-screen page-enter">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-2 p-2 mb-4 rounded-full hover:bg-elevated text-main">
-        <ArrowLeft className="w-5 h-5" /><span className="font-medium">Orqaga</span>
-      </button>
 
-      <div className={cn("max-w-4xl mx-auto space-y-4 px-4 pb-12", isFakeFullscreen && "fixed inset-0 z-[500] bg-black max-w-none p-0 pb-0 flex items-center justify-center")}>
+      <div className={cn("max-w-4xl mx-auto space-y-4 px-4 pb-12")}>
         {isAgeRestricted ? (
           <div className="relative aspect-[2/3] max-h-[400px] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl mx-auto ring-1 ring-white/10 flex items-center justify-center bg-surface">
             <div className="absolute inset-0 bg-red-900/20" />
@@ -233,12 +231,7 @@ export default function MovieDetail() {
         ) : showPlayer && canWatch ? (
           <div 
             ref={playerContainerRef} 
-            className={cn(
-              "relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-xl cursor-pointer group", 
-              isFakeFullscreen && !isRotated && "h-full rounded-none",
-              isRotated && "fixed inset-0 w-[100vh] h-[100vw] rotate-90 origin-center z-[600]"
-            )} 
-            style={isRotated ? { left: '50%', top: '50%', transform: 'translate(-50%, -50%) rotate(90deg)' } : {}}
+            className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-xl cursor-pointer group"
             onClick={resetControlsTimer} 
             onMouseMove={resetControlsTimer}
           >
@@ -257,12 +250,6 @@ export default function MovieDetail() {
                   <button onClick={togglePlay} className="absolute inset-0 flex items-center justify-center z-10">
                     {!isPlaying && <div className="p-5 rounded-full bg-black/40 backdrop-blur-md shadow-lg border border-white/20"><Play className="w-10 h-10 text-white fill-white ml-1" /></div>}
                   </button>
-                  
-                  {isFakeFullscreen && (
-                    <button onClick={toggleFakeFullscreen} className="absolute top-4 left-4 z-50 p-2 bg-black/40 backdrop-blur-md rounded-full text-white border border-white/20">
-                      <ArrowLeft className="w-6 h-6" />
-                    </button>
-                  )}
 
                   <div className="relative z-20 p-4 space-y-3">
                     {/* Time & Progress */}
@@ -314,18 +301,9 @@ export default function MovieDetail() {
                           </div>
                         )}
 
-                        <button onClick={(e) => { e.stopPropagation(); skip(10); }} className="text-white hover:text-primary transition-colors hidden sm:block"><SkipForward className="w-5 h-5" /></button>
-                        
-                        {isFakeFullscreen && (
-                          <button onClick={(e) => { e.stopPropagation(); setIsRotated(!isRotated); }} className={cn("text-white hover:text-primary transition-colors", isRotated && "text-primary")}>
-                            <RotateCcw className="w-5 h-5" />
-                          </button>
-                        )}
+                        <button onClick={(e) => { e.stopPropagation(); skip(10); }} className="text-white hover:text-primary transition-colors"><SkipForward className="w-5 h-5" /></button>
 
-                        <button onClick={(e) => { e.stopPropagation(); toggleFakeFullscreen(); }} className={cn("text-white hover:text-primary transition-colors", isFakeFullscreen && "text-primary")}>
-                           <Maximize className="w-5 h-5" />
-                        </button>
-                        <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="text-white hover:text-primary transition-colors hidden sm:block">
+                        <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="text-white hover:text-primary transition-colors">
                           {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
                         </button>
                       </div>
@@ -345,27 +323,8 @@ export default function MovieDetail() {
           </div>
         )}
 
-        {!isFakeFullscreen && (
         <div className="space-y-4 px-1 pb-4">
           <h1 className="text-3xl font-extrabold text-main">{movie.title}</h1>
-          
-          <div className="flex flex-wrap gap-2">
-            <a 
-              href={movie.video_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 py-2 bg-primary/20 border border-primary/30 rounded-xl text-primary text-sm font-bold hover:bg-primary/30 transition-colors flex items-center gap-2"
-            >
-              <ExternalLink className="w-4 h-4" /> Brauzerda ochish
-            </a>
-            <button 
-              onClick={copyLink}
-              className="px-4 py-2 bg-surface border border-theme rounded-xl text-main text-sm font-bold hover:bg-elevated transition-colors flex items-center gap-2"
-            >
-              {showCopyFeedback ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />} 
-              {showCopyFeedback ? 'Nusxalandi!' : 'Havolani nusxalash'}
-            </button>
-          </div>
           
           {movie.info_html ? (
             <div className="-mx-4 md:mx-0 rounded-none md:rounded-3xl overflow-hidden border-y md:border border-theme shadow-xl">
@@ -395,11 +354,18 @@ export default function MovieDetail() {
               </div>
             </div>
           ) : canWatch ? (
-            !showPlayer && (
-              <button onClick={() => setShowPlayer(true)} className="w-full py-4 mt-2 bg-gradient-to-r from-primary to-blue-600 text-white font-bold text-lg rounded-2xl flex items-center justify-center gap-2.5 shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-1 transition-all active:scale-[0.98]">
-                <Play className="w-6 h-6 fill-white" /> Kinoni ko'rish
-              </button>
-            )
+            <div className="space-y-3">
+              {!showPlayer && (
+                <button onClick={() => setShowPlayer(true)} className="w-full py-4 mt-2 bg-gradient-to-r from-primary to-blue-600 text-white font-bold text-lg rounded-2xl flex items-center justify-center gap-2.5 shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-1 transition-all active:scale-[0.98]">
+                  <Play className="w-6 h-6 fill-white" /> Kinoni ko'rish
+                </button>
+              )}
+              {movie.telegram_code && (
+                <button onClick={openInTelegram} className="w-full py-4 bg-gradient-to-r from-[#0088cc] to-[#0077b5] text-white font-bold text-lg rounded-2xl flex items-center justify-center gap-2.5 shadow-lg shadow-[#0088cc]/25 hover:shadow-[#0088cc]/40 hover:-translate-y-1 transition-all active:scale-[0.98]">
+                  <MessageCircle className="w-6 h-6 fill-white" /> Telegramda ko'rish
+                </button>
+              )}
+            </div>
           ) : (
             <div className="space-y-3 mt-4">
               <div className="p-5 bg-yellow-500/10 border border-yellow-500/30 rounded-2xl text-center">
@@ -413,7 +379,6 @@ export default function MovieDetail() {
             </div>
           )}
         </div>
-        )}
       </div>
     </div>
   );

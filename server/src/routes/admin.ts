@@ -4,7 +4,13 @@ import { adminAuth } from '../middleware.js';
 
 export const adminRouter = Router();
 
-// Get pricing config
+// Get pricing config (public)
+adminRouter.get('/pricing/public', async (_, res) => {
+  const { data } = await supabase.from('pricing_config').select('*').order('sort_order');
+  res.json(data || []);
+});
+
+// Get pricing config (admin)
 adminRouter.get('/pricing', adminAuth, async (_, res) => {
   const { data } = await supabase.from('pricing_config').select('*').order('sort_order');
   res.json(data || []);

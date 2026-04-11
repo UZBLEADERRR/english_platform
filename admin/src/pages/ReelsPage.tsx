@@ -82,7 +82,8 @@ export default function ReelsPage() {
           </div>
           {showWordForm === cat.id && (
             <div className="flex gap-2 flex-col">
-              <textarea value={wordForm.words_string} onChange={e => setWordForm({...wordForm, words_string: e.target.value})} placeholder="So'zlarni vergul bilan kiriting: masalan: apple, car, sun" className="input flex-1 min-h-[80px]" disabled={isGenerating} />
+              <textarea value={wordForm.words_string} onChange={e => setWordForm({...wordForm, words_string: e.target.value})} placeholder={"So'zlarni har qatorga bittadan yozing:\napple\ncar\nsun\n\nyoki vergul bilan: apple, car, sun"} className="input flex-1 min-h-[120px]" disabled={isGenerating} />
+              <p className="text-xs text-slate-400">💡 Har qatorga bitta so'z yoki vergul bilan ajrating. 50+ so'z birdaniga qo'shish mumkin.</p>
               <button onClick={() => generateWords(cat.id)} className="btn-primary text-xs w-full disabled:opacity-50" disabled={isGenerating}>
                 {isGenerating ? '⏳ AI Yaratmoqda, Kuting...' : '🤖 AI Orqali Generate Qilish'}
               </button>

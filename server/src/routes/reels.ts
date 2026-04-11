@@ -113,7 +113,11 @@ reelsRouter.post('/generate-words', adminAuth, async (req, res) => {
   const { category_id, words_string } = req.body;
   if (!category_id || !words_string) return res.status(400).json({ error: 'Missing field' });
 
-  const wordsList = words_string.split(',').map((w: string) => w.trim()).filter(Boolean);
+  // Support both newline-separated and comma-separated input
+  const wordsList = words_string
+    .split(/[\n,]+/)
+    .map((w: string) => w.trim())
+    .filter(Boolean);
   const results: any[] = [];
 
   for (const word of wordsList) {

@@ -45,10 +45,6 @@ export default function GrammarChecker() {
 
   return (
     <div className="space-y-5 animate-in fade-in duration-500 max-w-2xl mx-auto">
-      <div className="flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-elevated"><ArrowLeft className="w-5 h-5 text-main" /></button>
-        <h1 className="text-xl font-bold text-main">{t('grammarChecker')}</h1>
-      </div>
 
       <div className="space-y-3">
         <textarea value={text} onChange={e => setText(e.target.value)} rows={6} placeholder="Ingliz tilidagi matnni yozing..."

@@ -22,10 +22,6 @@ export default function Tips() {
 
   return (
     <div className="space-y-5 animate-in fade-in duration-500">
-      <div className="flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-elevated"><ArrowLeft className="w-5 h-5 text-main" /></button>
-        <h1 className="text-xl font-bold text-main">{t('tips')}</h1>
-      </div>
 
       <div className="grid grid-cols-2 gap-3">
         {tips.map(tip => (

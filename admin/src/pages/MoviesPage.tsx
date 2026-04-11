@@ -9,7 +9,7 @@ export default function MoviesPage() {
   const [showCatForm, setShowCatForm] = useState(false);
   const [catName, setCatName] = useState('');
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState({ title: '', description: '', info_html: '', poster_url: '', video_url: '', category_id: '', is_18plus: false, is_locked: false });
+  const [form, setForm] = useState({ title: '', description: '', info_html: '', poster_url: '', video_url: '', telegram_code: '', category_id: '', is_18plus: false, is_locked: false });
   const [uploadingVideo, setUploadingVideo] = useState(false);
   
   const load = () => { adminApi.getMovies().then(setMovies).catch(() => {}); adminApi.getMovieCategories().then(setCategories).catch(() => {}); };
@@ -34,12 +34,12 @@ export default function MoviesPage() {
     }
     setShowForm(false); 
     setEditId(null);
-    setForm({ title: '', description: '', info_html: '', poster_url: '', video_url: '', category_id: '', is_18plus: false, is_locked: false }); 
+    setForm({ title: '', description: '', info_html: '', poster_url: '', video_url: '', telegram_code: '', category_id: '', is_18plus: false, is_locked: false }); 
     load(); 
   };
   
   const startEdit = (m: any) => {
-    setForm({ title: m.title, description: m.description || '', info_html: m.info_html || '', poster_url: m.poster_url || '', video_url: m.video_url || '', category_id: m.category_id || '', is_18plus: m.is_18plus, is_locked: m.is_locked });
+    setForm({ title: m.title, description: m.description || '', info_html: m.info_html || '', poster_url: m.poster_url || '', video_url: m.video_url || '', telegram_code: m.telegram_code || '', category_id: m.category_id || '', is_18plus: m.is_18plus, is_locked: m.is_locked });
     setEditId(m.id);
     setShowForm(true);
   };
@@ -98,6 +98,8 @@ export default function MoviesPage() {
             </label>
           </div>
 
+          <input value={form.telegram_code} onChange={e => setForm({...form, telegram_code: e.target.value})} placeholder="Telegram kodi (bot orqali ko'rish uchun)" className="input" />
+
           <select value={form.category_id} onChange={e => setForm({...form, category_id: e.target.value})} className="input">
             <option value="">Kategoriya tanlang</option>
             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -115,6 +117,7 @@ export default function MoviesPage() {
             {m.poster_url && <img src={m.poster_url} alt="" className="w-full h-40 rounded-xl object-cover" />}
             <h3 className="text-white font-bold text-sm">{m.title}</h3>
             <p className="text-slate-400 text-xs line-clamp-2">{m.description}</p>
+            {m.telegram_code && <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded text-xs">TG: {m.telegram_code}</span>}
             <div className="flex items-center gap-2 flex-wrap">
               {m.is_18plus && <span className="px-2 py-0.5 bg-red-500/10 text-red-400 rounded text-xs">18+</span>}
               <span className={`px-2 py-0.5 rounded text-xs ${m.is_locked ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'}`}>{m.is_locked ? 'Qulflangan' : 'Ochiq'}</span>

@@ -26,12 +26,6 @@ export default function LevelView() {
 
   return (
     <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-      <div className="flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-elevated transition-colors">
-          <ArrowLeft className="w-5 h-5 text-main" />
-        </button>
-        <h1 className="text-xl font-bold text-main">Mavzular</h1>
-      </div>
 
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
         {topics.map((topic) => {
@@ -39,7 +33,14 @@ export default function LevelView() {
           return (
             <button
               key={topic.id}
-              onClick={() => !isLocked && navigate(`/lesson/${topic.id}`)}
+              onClick={() => {
+                if (isLocked) return;
+                if (categoryId === 'vocabulary') {
+                  navigate(`/vocabulary/${topic.id}`);
+                } else {
+                  navigate(`/lesson/${topic.id}`);
+                }
+              }}
               disabled={isLocked}
               className={cn(
                 "flex flex-col items-center p-3 rounded-2xl transition-all duration-300 group",

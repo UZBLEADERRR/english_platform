@@ -20,7 +20,7 @@ export default function LessonsPage() {
   const [elementForm, setElementForm] = useState<any>({ element_type: 'text', content: { text: '' } });
   const [showElementForm, setShowElementForm] = useState(false);
 
-  useEffect(() => { adminApi.getCategories().then(c => setCategories(c.filter((x: any) => ['grammar','reading','writing','listening','speaking'].includes(x.id)))).catch(() => {}); }, []);
+  useEffect(() => { adminApi.getCategories().then(c => setCategories(c.filter((x: any) => ['grammar','vocabulary','reading','writing','listening','speaking'].includes(x.id)))).catch(() => {}); }, []);
 
   const loadLevels = async (catId: string) => {
     setSelectedCat(catId);
