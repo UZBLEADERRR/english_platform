@@ -51,8 +51,8 @@ const WebviewElement = ({ content }: { content: any }) => {
     <div className="w-full bg-surface shadow-xl border-y border-theme relative flex flex-col">
       <iframe
         srcDoc={finalHtml}
-        className="w-full border-none bg-white min-h-[calc(100vh-64px)]"
-        sandbox="allow-scripts allow-same-origin allow-forms"
+        className="w-full border-none bg-white"
+        style={{ minHeight: 'calc(100vh - 64px)' }}
       />
     </div>
   );
