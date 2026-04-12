@@ -3,9 +3,12 @@ import { useParams } from 'react-router-dom';
 import api from '../api';
 import { Volume2, ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
 
+const defaultBanner = 'https://images.unsplash.com/photo-1546410531-dd4cbcecbbe1?w=800&h=400&fit=crop';
+
 export default function VocabularyView() {
   const { topicId } = useParams<{ topicId: string }>();
   const [words, setWords] = useState<any[]>([]);
+  const [topic, setTopic] = useState<any>(null);
   const [expandedWord, setExpandedWord] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -19,6 +22,9 @@ export default function VocabularyView() {
       setWords([]);
       setLoading(false);
     });
+
+    // Fetch topic info for icon and title
+    api.get(`/api/topics/single/${topicId}`).then(setTopic).catch(() => {});
   }, [topicId]);
 
   useEffect(() => {
@@ -62,15 +68,18 @@ export default function VocabularyView() {
     );
   }
 
+  const bannerImage = topic?.icon_url || defaultBanner;
+  const topicTitle = topic?.title || 'Yangi So\'zlar';
+
   return (
     <div className="animate-in fade-in duration-500 pb-8">
       {/* Banner */}
       <div className="relative w-full h-48 md:h-64 rounded-b-[2rem] overflow-hidden mb-6 shadow-xl">
-        <img src="https://images.unsplash.com/photo-1546410531-dd4cbcecbbe1?w=800&h=400&fit=crop" alt="Vocabulary" className="w-full h-full object-cover" />
+        <img src={bannerImage} alt={topicTitle} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
         <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/40 to-transparent" />
         <div className="absolute bottom-6 left-6 right-6">
           <span className="px-3 py-1 bg-primary/20 text-primary rounded-lg text-xs font-bold uppercase tracking-wider backdrop-blur-md border border-primary/30">Vocabulary</span>
-          <h1 className="text-3xl font-extrabold text-main mt-2">Yangi So'zlar</h1>
+          <h1 className="text-3xl font-extrabold text-main mt-2">{topicTitle}</h1>
         </div>
       </div>
 

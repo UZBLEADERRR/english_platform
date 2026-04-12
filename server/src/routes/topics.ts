@@ -14,6 +14,17 @@ topicsRouter.get('/:levelId', async (req, res) => {
   res.json(data || []);
 });
 
+// Get single topic by ID
+topicsRouter.get('/single/:id', async (req, res) => {
+  const { data } = await supabase
+    .from('topics')
+    .select('*')
+    .eq('id', req.params.id)
+    .single();
+  if (!data) return res.status(404).json({ error: 'Topic not found' });
+  res.json(data);
+});
+
 // Admin: Create topic
 topicsRouter.post('/', adminAuth, async (req, res) => {
   const { data, error } = await supabase.from('topics').insert(req.body).select().single();
