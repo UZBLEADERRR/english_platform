@@ -10,15 +10,30 @@ class ApiClient {
   setUserId(id: string) { this.userId = id; }
   getUserId() { return this.userId; }
 
+  setSessionToken(token: string) { 
+    localStorage.setItem('session_token', token); 
+  }
+  getSessionToken() { 
+    return localStorage.getItem('session_token') || ''; 
+  }
+
   private async request(path: string, options: RequestInit = {}) {
     const headers: any = { 'Content-Type': 'application/json', ...options.headers };
     if (this.token) headers['Authorization'] = `Bearer ${this.token}`;
     if (this.telegramId) headers['x-telegram-id'] = this.telegramId;
     if (this.userId) headers['x-user-id'] = this.userId;
+    
+    const sessionToken = this.getSessionToken();
+    if (sessionToken) headers['x-session-token'] = sessionToken;
 
     const res = await fetch(`${API_URL}${path}`, { ...options, headers });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: 'Network error' }));
+      // Handle session expiration
+      if (err.session_expired) {
+        window.dispatchEvent(new CustomEvent('session-expired'));
+        throw new Error('SESSION_EXPIRED');
+      }
       throw new Error(err.error || `HTTP ${res.status}`);
     }
     return res.json();

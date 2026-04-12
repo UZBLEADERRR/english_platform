@@ -16,7 +16,7 @@ const fallbackCategories = [
   { id: 'writing', custom_name: 'Writing', image_url: 'https://my-icon-2004.b-cdn.net/writing_tx.jpg' },
   { id: 'speaking', custom_name: 'Speaking', image_url: 'https://my-icon-2004.b-cdn.net/speaking_tx.jpg' },
   { id: 'movies', custom_name: 'Movies', image_url: 'https://my-icon-2004.b-cdn.net/movies_tx.jpg' },
-  { id: 'comics', custom_name: 'Comics', image_url: 'https://my-icon-2004.b-cdn.net/comics_tx.jpg' },
+  { id: 'comics', custom_name: 'Hikoyalar', image_url: 'https://my-icon-2004.b-cdn.net/comics_tx.jpg' },
   { id: 'songs', custom_name: 'Songs', image_url: 'https://my-icon-2004.b-cdn.net/songs_tx.jpg' },
   { id: 'library', custom_name: 'Library', image_url: 'https://my-icon-2004.b-cdn.net/library_tx.jpg' },
   { id: 'apps', custom_name: 'Ilovalar', image_url: 'https://my-icon-2004.b-cdn.net/apps_tx.jpg' },

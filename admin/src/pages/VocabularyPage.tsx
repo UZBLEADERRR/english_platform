@@ -11,7 +11,7 @@ export default function VocabularyPage() {
   const [selectedTopic, setSelectedTopic] = useState('');
   
   // Forms
-  const [topicForm, setTopicForm] = useState({ title: '' });
+  const [topicForm, setTopicForm] = useState({ title: '', icon_url: '' });
   const [showTopicForm, setShowTopicForm] = useState(false);
   const [wordsText, setWordsText] = useState('');
   const [generating, setGenerating] = useState(false);
@@ -50,9 +50,9 @@ export default function VocabularyPage() {
 
   const addTopic = async () => {
     if (!topicForm.title.trim()) return;
-    await adminApi.addTopic({ title: topicForm.title, level_id: selectedLevel, sort_order: topics.length });
+    await adminApi.addTopic({ title: topicForm.title, icon_url: topicForm.icon_url || null, level_id: selectedLevel, sort_order: topics.length });
     setShowTopicForm(false);
-    setTopicForm({ title: '' });
+    setTopicForm({ title: '', icon_url: '' });
     loadTopics(selectedLevel);
   };
 
@@ -142,7 +142,8 @@ export default function VocabularyPage() {
           </div>
           {showTopicForm && (
             <div className="card space-y-3">
-              <input value={topicForm.title} onChange={e => setTopicForm({ title: e.target.value })} placeholder="Mavzu nomi (masalan: Mevalar, Hayvonlar)" className="input" />
+              <input value={topicForm.title} onChange={e => setTopicForm({ ...topicForm, title: e.target.value })} placeholder="Mavzu nomi (masalan: Mevalar, Hayvonlar)" className="input" />
+              <input value={topicForm.icon_url} onChange={e => setTopicForm({ ...topicForm, icon_url: e.target.value })} placeholder="Icon URL (ixtiyoriy)" className="input" />
               <div className="flex gap-2">
                 <button onClick={addTopic} className="btn-primary text-xs">Saqlash</button>
                 <button onClick={() => setShowTopicForm(false)} className="btn-secondary text-xs">Bekor</button>

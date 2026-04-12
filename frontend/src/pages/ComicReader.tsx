@@ -28,7 +28,12 @@ export default function ComicReader() {
 
   const startReading = async () => {
     setShowReader(true);
-    if (!comic || !comic.pages || comic.pages.length === 0) return;
+    if (!comic) return;
+
+    // If it has html_code, no need to process files
+    if (comic.html_code) return;
+
+    if (!comic.pages || comic.pages.length === 0) return;
 
     const firstUrl = comic.pages[0].image_url;
     
@@ -74,9 +79,13 @@ export default function ComicReader() {
 
   if (!comic) return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>;
 
+  const hasHtml = !!comic.html_code;
   const firstUrl = comic.pages?.[0]?.image_url || '';
   const isCbz = firstUrl.toLowerCase().endsWith('.cbz') || firstUrl.includes('.cbz');
   const isPdf = firstUrl.toLowerCase().endsWith('.pdf') || firstUrl.includes('.pdf');
+
+  // Build webview HTML with dark theme wrapper
+  const webviewHtml = comic.html_code ? `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f0f17;color:#e0e0e0;padding:16px;line-height:1.7;font-size:16px}img{max-width:100%;border-radius:12px;margin:8px 0}h1,h2,h3{color:#fff;margin:16px 0 8px}p{margin:8px 0}a{color:#6366f1}</style></head><body>${comic.html_code}</body></html>` : '';
 
   return (
     <div className="animate-in fade-in duration-500 min-h-screen">
@@ -116,15 +125,27 @@ export default function ComicReader() {
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center flex-col gap-4 bg-black/50 rounded-xl z-20">
                 <Loader2 className="w-10 h-10 text-primary animate-spin" />
-                <p className="text-white font-bold text-lg animate-pulse">Komiks yuklanmoqda...</p>
+                <p className="text-white font-bold text-lg animate-pulse">Hikoya yuklanmoqda...</p>
+              </div>
+            )}
+
+            {/* WebView / HTML content */}
+            {hasHtml && !isLoading && (
+              <div className="w-full overflow-hidden border-y border-theme shadow-lg bg-white rounded-xl">
+                <iframe
+                  srcDoc={webviewHtml}
+                  className="w-full border-none"
+                  style={{ minHeight: 'calc(100dvh - 120px)', height: '100%' }}
+                  sandbox="allow-scripts allow-same-origin"
+                />
               </div>
             )}
             
-            {isCbz && !isLoading && extractedPages.map((url, i) => (
+            {!hasHtml && isCbz && !isLoading && extractedPages.map((url, i) => (
               <img key={i} src={url} alt={`Page ${i+1}`} className="w-full block" style={{ marginTop: '-1px' }} />
             ))}
 
-            {isPdf && !isLoading && (
+            {!hasHtml && isPdf && !isLoading && (
               <div className="flex flex-col items-center bg-white rounded-lg overflow-hidden w-full max-w-full">
                 <Document 
                    file={firstUrl} 
@@ -163,7 +184,7 @@ export default function ComicReader() {
               </div>
             )}
 
-            {!isCbz && !isPdf && !isLoading && comic.pages?.map((page: any) => (
+            {!hasHtml && !isCbz && !isPdf && !isLoading && comic.pages?.map((page: any) => (
               <img key={page.id} src={page.image_url} alt={`Page ${page.page_number}`}
                 className="w-full block" style={{ marginTop: '-1px' }} referrerPolicy="no-referrer" />
             ))}

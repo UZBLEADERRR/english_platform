@@ -119,6 +119,9 @@ export default function VocabularyView() {
                     <div>
                       <p className="text-xs text-muted font-medium uppercase tracking-wider mb-0.5">Misol</p>
                       <p className="text-main text-sm italic">"{w.example}"</p>
+                      {w.example_translation && (
+                        <p className="text-primary/80 text-xs mt-0.5">🇺🇿 {w.example_translation}</p>
+                      )}
                       <button 
                         onClick={() => speak(w.example)} 
                         className="mt-1 text-xs text-primary hover:text-primary/80 flex items-center gap-1"

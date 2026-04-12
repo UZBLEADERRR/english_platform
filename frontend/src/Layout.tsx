@@ -15,8 +15,8 @@ const sectionRoutes: { pattern: RegExp; name: string }[] = [
   { pattern: /^\/lesson\//, name: 'Dars' },
   { pattern: /^\/movies$/, name: 'Movies' },
   { pattern: /^\/movie\//, name: 'Kino' },
-  { pattern: /^\/comics$/, name: 'Comics' },
-  { pattern: /^\/comic\//, name: 'Komiks' },
+  { pattern: /^\/comics$/, name: 'Hikoyalar' },
+  { pattern: /^\/comic\//, name: 'Hikoya' },
   { pattern: /^\/songs$/, name: 'Songs' },
   { pattern: /^\/library$/, name: 'Library' },
   { pattern: /^\/grammar-checker$/, name: 'Grammar Checker' },
@@ -39,11 +39,23 @@ export default function Layout() {
   const t = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, setUser, isNavbarHidden: isHiddenByStore, setIsNavbarHidden } = useAppStore();
+  const { user, setUser, isNavbarHidden: isHiddenByStore, setIsNavbarHidden, logout } = useAppStore();
   const [showReg, setShowReg] = useState(false);
   const [showCodeLogin, setShowCodeLogin] = useState(false);
+  const [showSessionExpired, setShowSessionExpired] = useState(false);
   const [loginForm, setLoginForm] = useState({ telegram_id: '', code: '' });
   const [regData, setRegData] = useState({ first_name: '', age: '', gender: '' });
+
+  // Listen for session expired events
+  useEffect(() => {
+    const handler = () => {
+      setShowSessionExpired(true);
+      logout();
+      localStorage.removeItem('session_token');
+    };
+    window.addEventListener('session-expired', handler);
+    return () => window.removeEventListener('session-expired', handler);
+  }, [logout]);
 
   // Reset navbar visibility when navigating between pages
   useEffect(() => {
@@ -83,8 +95,9 @@ export default function Layout() {
         last_name: tgUser.last_name,
         avatar_url: tgUser.photo_url,
         referral_code: new URLSearchParams(tg?.initDataUnsafe?.start_param || '').get('ref'),
-      }).then(({ user: u }) => {
+      }).then(({ user: u, session_token }) => {
         api.setUserId(u.id);
+        if (session_token) api.setSessionToken(session_token);
         setUser(u);
       }).catch(console.error);
     } else if (user && user.telegram_id && user.telegram_id !== 123456789) {
@@ -128,6 +141,7 @@ export default function Layout() {
       const u = await api.loginCode(loginForm.telegram_id, loginForm.code);
       api.setTelegramId(u.telegram_id.toString());
       api.setUserId(u.id);
+      if (u.session_token) api.setSessionToken(u.session_token);
       setUser(u);
       setShowCodeLogin(false);
     } catch (e: any) {
@@ -322,6 +336,25 @@ export default function Layout() {
                 Kirish 🚀
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Session Expired Modal */}
+      {showSessionExpired && (
+        <div className="fixed inset-0 z-[999] bg-bg/95 flex flex-col items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-surface border border-theme rounded-3xl p-6 shadow-2xl space-y-6 text-center">
+            <div className="w-16 h-16 bg-red-500/20 rounded-2xl mx-auto flex items-center justify-center mb-3">
+              <span className="text-3xl">⚠️</span>
+            </div>
+            <h2 className="text-2xl font-extrabold text-main">Sessiya tugadi</h2>
+            <p className="text-muted text-sm">Boshqa qurilmadan kirilganligi sababli bu sessiya yakunlandi. Qaytadan kirish uchun tugmani bosing.</p>
+            <button 
+              onClick={() => { setShowSessionExpired(false); setShowCodeLogin(true); }}
+              className="w-full py-3.5 mt-2 bg-gradient-to-r from-primary to-blue-600 text-white font-bold rounded-xl shadow-lg shadow-primary/30"
+            >
+              Qayta kirish 🔑
+            </button>
           </div>
         </div>
       )}

@@ -36,14 +36,15 @@ vocabularyRouter.post('/generate', adminAuth, async (req, res) => {
     const { english, uzbek } = wordPairs[i];
     
     try {
-      const prompt = `For the English word "${english}":
+      const prompt = `For the English word/phrase "${english}":
 1. Give me 1 real-life example sentence using "${english}".
-2. Give me 2-3 synonyms (English words with similar meaning).
-3. Give me 2-3 antonyms (English words with opposite meaning).
-4. If the Uzbek translation is missing, provide one.
+2. Give me the Uzbek translation of that example sentence.
+3. If possible, give me 2-3 synonyms (English words with similar meaning). If it's a phrase or has no good synonyms, return empty array.
+4. If possible, give me 2-3 antonyms (English words with opposite meaning). If not applicable, return empty array.
+5. If the Uzbek translation is missing, provide one.
 
 Reply ONLY as JSON:
-{"example": "...", "synonyms": ["..."], "antonyms": ["..."], "uzbek": "${uzbek || '...'}"}`;
+{"example": "...", "example_translation": "...", "synonyms": [], "antonyms": [], "uzbek": "${uzbek || '...'}"}`;
 
       const model = genAI.getGenerativeModel({
         model: 'gemini-3-flash-preview',
@@ -56,7 +57,7 @@ Reply ONLY as JSON:
 
       const text = result.response.text() || '';
       const match = text.match(/\{[\s\S]*\}/);
-      let parsed = { example: '', synonyms: [], antonyms: [], uzbek: uzbek };
+      let parsed = { example: '', example_translation: '', synonyms: [], antonyms: [], uzbek: uzbek };
       
       if (match) {
         try { parsed = { ...parsed, ...JSON.parse(match[0]) }; } catch(e) {}
@@ -67,8 +68,9 @@ Reply ONLY as JSON:
         english: english,
         uzbek: parsed.uzbek || uzbek,
         example: parsed.example,
-        synonyms: parsed.synonyms,
-        antonyms: parsed.antonyms,
+        example_translation: parsed.example_translation || '',
+        synonyms: parsed.synonyms || [],
+        antonyms: parsed.antonyms || [],
         sort_order: i,
       }).select().single();
 
@@ -81,6 +83,7 @@ Reply ONLY as JSON:
         english,
         uzbek,
         example: '',
+        example_translation: '',
         synonyms: [],
         antonyms: [],
         sort_order: i,

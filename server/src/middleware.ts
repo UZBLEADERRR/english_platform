@@ -46,3 +46,23 @@ export async function userAuth(req: Request, res: Response, next: NextFunction) 
   (req as any).user = user;
   next();
 }
+
+// Session validation middleware — checks if session token is still active
+export async function sessionAuth(req: Request, res: Response, next: NextFunction) {
+  const sessionToken = req.headers['x-session-token'] as string;
+  
+  // Skip session check for admin routes and auth routes
+  if (!sessionToken) return next();
+
+  const { data } = await supabase
+    .from('user_sessions')
+    .select('id')
+    .eq('session_token', sessionToken)
+    .single();
+
+  if (!data) {
+    return res.status(401).json({ error: 'Session expired', session_expired: true });
+  }
+
+  next();
+}

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { supabase } from '../supabase.js';
 import { adminAuth } from '../middleware.js';
+import crypto from 'crypto';
 
 export const usersRouter = Router();
 
@@ -30,7 +31,27 @@ usersRouter.post('/login-code', async (req, res) => {
   // Delete used code
   await supabase.from('login_codes').delete().eq('id', loginCode.id);
 
-  res.json(user);
+  // Create session
+  const sessionToken = crypto.randomUUID();
+  await supabase.from('user_sessions').insert({
+    user_id: user.id,
+    session_token: sessionToken,
+    device_type: 'browser',
+  });
+
+  // Enforce 2-session limit
+  const { data: sessions } = await supabase
+    .from('user_sessions')
+    .select('id')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+
+  if (sessions && sessions.length > 2) {
+    const toDelete = sessions.slice(2).map(s => s.id);
+    await supabase.from('user_sessions').delete().in('id', toDelete);
+  }
+
+  res.json({ ...user, session_token: sessionToken });
 });
 
 // Admin: Get all users

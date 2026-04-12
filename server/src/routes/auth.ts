@@ -1,7 +1,36 @@
 import { Router } from 'express';
 import { supabase } from '../supabase.js';
+import crypto from 'crypto';
 
 export const authRouter = Router();
+
+const MAX_SESSIONS = 2;
+
+// Helper: create session and enforce limit
+async function createSession(userId: string, deviceType: string = 'browser') {
+  const sessionToken = crypto.randomUUID();
+
+  // Insert new session
+  await supabase.from('user_sessions').insert({
+    user_id: userId,
+    session_token: sessionToken,
+    device_type: deviceType,
+  });
+
+  // Enforce session limit: keep only most recent MAX_SESSIONS
+  const { data: sessions } = await supabase
+    .from('user_sessions')
+    .select('id')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (sessions && sessions.length > MAX_SESSIONS) {
+    const toDelete = sessions.slice(MAX_SESSIONS).map(s => s.id);
+    await supabase.from('user_sessions').delete().in('id', toDelete);
+  }
+
+  return sessionToken;
+}
 
 // Admin login
 authRouter.post('/admin/login', async (req, res) => {
@@ -33,7 +62,10 @@ authRouter.post('/telegram', async (req, res) => {
       .eq('telegram_id', telegram_id)
       .select()
       .single();
-    return res.json({ user: updated || user, isNew: false });
+    
+    const finalUser = updated || user;
+    const sessionToken = await createSession(finalUser.id, 'telegram');
+    return res.json({ user: finalUser, isNew: false, session_token: sessionToken });
   }
 
   // Create new user
@@ -59,7 +91,8 @@ authRouter.post('/telegram', async (req, res) => {
     await supabase.rpc('increment_referral_registrations', { ref_code: referral_code });
   }
 
-  res.json({ user: newUser, isNew: true });
+  const sessionToken = await createSession(newUser.id, 'telegram');
+  res.json({ user: newUser, isNew: true, session_token: sessionToken });
 });
 
 // Get current user

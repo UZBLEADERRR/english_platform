@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { sessionAuth } from './middleware.js';
 import { authRouter } from './routes/auth.js';
 import { carouselRouter } from './routes/carousel.js';
 import { categoriesRouter } from './routes/categories.js';
@@ -34,6 +35,9 @@ app.use(express.json({ limit: '50mb' }));
 
 // Health check
 app.get('/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+
+// Session validation (runs before all API routes, after auth)
+app.use('/api', sessionAuth);
 
 // API Routes
 app.use('/api/auth', authRouter);

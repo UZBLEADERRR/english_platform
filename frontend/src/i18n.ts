@@ -2,7 +2,7 @@ export const translations = {
   uz: {
     home: "Bosh sahifa", apps: "Ilovalar", reels: "Reels", aiChat: "AI Chat", profile: "Profil",
     grammar: "Grammatika", reading: "O'qish", writing: "Yozish", listening: "Eshitish", speaking: "Gapirish",
-    vocabulary: "Lug'at", movies: "Kino", comics: "Komikslar", grammarChecker: "Grammatika tekshirgich",
+    vocabulary: "Lug'at", movies: "Kino", comics: "Hikoyalar", grammarChecker: "Grammatika tekshirgich",
     tips: "Maslahatlar", level: "Daraja", iknow: "Bilaman", idontknow: "Bilmayman",
     typeMessage: "Xabar yozing...", chatHistory: "Chat tarixi", newChat: "Yangi chat",
     knownWords: "Biladigan so'zlar", unknownWords: "Bilmaydigan so'zlar",
@@ -23,7 +23,7 @@ export const translations = {
   en: {
     home: "Home", apps: "Apps", reels: "Reels", aiChat: "AI Chat", profile: "Profile",
     grammar: "Grammar", reading: "Reading", writing: "Writing", listening: "Listening", speaking: "Speaking",
-    vocabulary: "Vocabulary", movies: "Movies", comics: "Comics", grammarChecker: "Grammar Checker",
+    vocabulary: "Vocabulary", movies: "Movies", comics: "Stories", grammarChecker: "Grammar Checker",
     tips: "Tips", level: "Level", iknow: "I know", idontknow: "I don't know",
     typeMessage: "Type a message...", chatHistory: "Chat History", newChat: "New Chat",
     knownWords: "Known Words", unknownWords: "Unknown Words",
