@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../i18n';
 import { useAppStore } from '../store';
 import api from '../api';
+import { parseWord } from '../utils';
 import { Heart, X, Undo2 } from 'lucide-react';
 
 export default function Reels() {
@@ -56,11 +57,6 @@ export default function Reels() {
     if (history.length === 0) return;
     setHistory(p => p.slice(0, -1));
     setCurrentIndex(p => p - 1);
-  };
-
-  const parseWord = (wordStr: string) => {
-    const parts = (wordStr || '').split('||');
-    return { mainWord: parts[0] || '', translation: parts[1] || '', example: parts[2] || '', example_translation: parts[3] || '' };
   };
 
   return (
