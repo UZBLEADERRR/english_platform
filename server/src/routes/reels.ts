@@ -126,10 +126,11 @@ reelsRouter.post('/generate-words', adminAuth, async (req, res) => {
       const prompt = `For the English word "${word}":
 1. Give me the Uzbek translation (a single short word/phrase).
 2. Write one simple English example sentence using "${word}".
-3. Describe a fun, colorful cartoon illustration that shows the meaning of "${word}" for a language learner. The description should be vivid enough to generate an image.
+3. Give me the Uzbek translation of that example sentence.
+4. Describe a scene illustrating this exact example sentence as a slightly cartoonish (multik) but realistic 3D picture. The description should be vivid enough to generate a highly detailed fun image.
 
 Reply ONLY as JSON:
-{"translation": "...", "example": "...", "image_description": "..."}`;
+{"translation": "...", "example": "...", "example_translation": "...", "image_description": "..."}`;
       
       const model = genAI.getGenerativeModel({ 
         model: 'gemini-3-flash-preview',
@@ -147,15 +148,16 @@ Reply ONLY as JSON:
       const parsed = JSON.parse(match[0]);
       const translation = parsed.translation || word;
       const example = parsed.example || `I see a ${word}.`;
+      const example_translation = parsed.example_translation || '';
       const imageDesc = parsed.image_description || `A cute cartoon of ${word}`;
 
       // Step 2: Generate image via Pollinations with a very specific prompt
-      const imagePrompt = `Cute colorful cartoon illustration for kids learning English: ${imageDesc}. The word "${word.toUpperCase()}" is written in large bold white letters at the top center. Below it "${translation}" in green. Simple, clean, fun, educational mobile wallpaper style, 9:16 aspect ratio, no text overlap with illustration, bright pastel background.`;
+      const imagePrompt = `A slightly cartoonish but realistic 3D illustration: ${imageDesc}. No text, no letters, no words. Simple, clean, fun, educational mobile wallpaper style, 9:16 aspect ratio, bright background.`;
       const encodedPrompt = encodeURIComponent(imagePrompt);
       const seed = Math.floor(Math.random() * 100000);
-      const image_url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=720&height=1280&nologo=true&seed=${seed}`;
+      const image_url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=720&height=1280&nologo=true&seed=${seed}&model=gemini-2.5-flash-image`;
 
-      const combinedWord = `${word}||${translation}||${example}`;
+      const combinedWord = `${word}||${translation}||${example}||${example_translation}`;
       
       const { data } = await supabase.from('reel_words').insert({
         category_id,

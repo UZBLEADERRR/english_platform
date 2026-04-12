@@ -60,7 +60,7 @@ export default function Reels() {
 
   const parseWord = (wordStr: string) => {
     const parts = (wordStr || '').split('||');
-    return { mainWord: parts[0] || '', translation: parts[1] || '', example: parts[2] || '' };
+    return { mainWord: parts[0] || '', translation: parts[1] || '', example: parts[2] || '', example_translation: parts[3] || '' };
   };
 
   return (
@@ -121,13 +121,18 @@ export default function Reels() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/60" />
             
             {(() => {
-              const { mainWord, translation, example } = parseWord(words[currentIndex]?.word);
+              const { mainWord, translation, example, example_translation } = parseWord(words[currentIndex]?.word);
               return (
                 <div className="absolute top-28 left-4 right-4 flex flex-col items-center text-center pointer-events-none">
                   <div className="px-6 py-4 bg-black/30 backdrop-blur-md rounded-3xl border border-white/20 shadow-xl w-full max-w-sm">
                     <h2 className="text-4xl font-extrabold text-white drop-shadow-lg mb-2">{mainWord}</h2>
                     {translation && <p className="text-xl font-medium text-green-400 mb-3">{translation}</p>}
-                    {example && <p className="text-[15px] font-medium text-white/90 italic leading-relaxed">"{example}"</p>}
+                    {example && (
+                      <div className="bg-black/20 p-3 rounded-2xl border border-white/10 mt-2">
+                        <p className="text-[16px] font-medium text-white italic leading-relaxed">"{example}"</p>
+                        {example_translation && <p className="text-[14px] text-green-300/90 mt-1.5 font-medium">{example_translation}</p>}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
