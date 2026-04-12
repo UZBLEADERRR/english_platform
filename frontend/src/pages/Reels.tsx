@@ -98,53 +98,56 @@ export default function Reels() {
       ) : (
         <div className="relative w-full h-full flex flex-col overflow-hidden z-10">
           {/* Current card */}
-          <div className="absolute inset-0 w-full h-full page-enter" key={currentIndex}>
-            {words[currentIndex]?.image_url?.match(/\.(mp4|webm|m3u8)/i) ? (
-              <video 
-                src={words[currentIndex]?.image_url} 
-                className="absolute inset-0 w-full h-full object-cover" 
-                autoPlay={true}
-                loop={true}
-                muted={false}
-                playsInline={true}
-              />
-            ) : (
-              <img 
-                src={words[currentIndex]?.image_url} 
-                alt="" 
-                className="absolute inset-0 w-full h-full object-cover" 
-                referrerPolicy="no-referrer" 
-                crossOrigin="anonymous"
-                onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80')} 
-              />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/60" />
-            
+          <div className="absolute inset-0 w-full h-full page-enter flex flex-col bg-black" key={currentIndex}>
             {(() => {
               const { mainWord, translation, example, example_translation } = parseWord(words[currentIndex]?.word);
               return (
-                <div className="absolute top-28 left-4 right-4 flex flex-col items-center text-center pointer-events-none">
-                  <div className="px-6 py-4 bg-black/30 backdrop-blur-md rounded-3xl border border-white/20 shadow-xl w-full max-w-sm">
-                    <h2 className="text-4xl font-extrabold text-white drop-shadow-lg mb-2">{mainWord}</h2>
-                    {translation && <p className="text-xl font-medium text-green-400 mb-3">{translation}</p>}
+                <div className="pt-20 px-4 pb-4 bg-gradient-to-b from-black via-black/90 to-black/80 border-b border-white/10">
+                  <div className="max-w-sm mx-auto flex flex-col items-center text-center">
+                    <h2 className="text-3xl font-extrabold text-white mb-1">{mainWord}</h2>
+                    {translation && <p className="text-lg font-medium text-green-400 mb-3">{translation}</p>}
                     {example && (
-                      <div className="bg-black/20 p-3 rounded-2xl border border-white/10 mt-2">
-                        <p className="text-[16px] font-medium text-white italic leading-relaxed">"{example}"</p>
-                        {example_translation && <p className="text-[14px] text-green-300/90 mt-1.5 font-medium">{example_translation}</p>}
+                      <div className="bg-white/5 backdrop-blur-sm p-3 rounded-2xl border border-white/10 w-full">
+                        <p className="text-[14px] font-medium text-white italic leading-relaxed">"{example}"</p>
+                        {example_translation && <p className="text-[13px] text-green-300/80 mt-1 font-medium">{example_translation}</p>}
                       </div>
                     )}
                   </div>
                 </div>
               );
             })()}
-            
-            {selectedCat && categories.find(c => c.id === selectedCat) && (
-              <div className="absolute bottom-6 left-0 w-full text-center pointer-events-none">
-                <span className="text-xs font-semibold px-3 py-1 bg-black/50 text-white/70 rounded-full select-none">
-                  {categories.find(c => c.id === selectedCat)?.name}
-                </span>
-              </div>
-            )}
+
+            <div className="relative flex-1 w-full overflow-hidden">
+              {words[currentIndex]?.image_url?.match(/\.(mp4|webm|m3u8)/i) ? (
+                <video 
+                  src={words[currentIndex]?.image_url} 
+                  className="w-full h-full object-cover" 
+                  autoPlay={true}
+                  loop={true}
+                  muted={false}
+                  playsInline={true}
+                />
+              ) : (
+                <img 
+                  src={words[currentIndex]?.image_url} 
+                  alt="" 
+                  className="w-full h-full object-cover" 
+                  referrerPolicy="no-referrer" 
+                  crossOrigin="anonymous"
+                  onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80')} 
+                />
+              )}
+              {/* Subtle gradient overlay at bottom for visibility */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+              
+              {selectedCat && categories.find(c => c.id === selectedCat) && (
+                <div className="absolute bottom-6 left-0 w-full text-center pointer-events-none">
+                  <span className="text-[10px] font-semibold px-3 py-1 bg-black/50 text-white/50 rounded-full select-none">
+                    {categories.find(c => c.id === selectedCat)?.name}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Actions */}
