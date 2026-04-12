@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
 import api from '../api';
-import { Play, Lock, Volume2, VolumeX, Maximize, Minimize, SkipForward, Pause, MessageCircle } from 'lucide-react';
+import { Play, Lock, Volume2, VolumeX, Maximize, Minimize, SkipForward, Pause, MessageCircle, Languages, X, Loader2 } from 'lucide-react';
 import Hls from 'hls.js';
 import { cn } from '../utils';
 
@@ -28,6 +28,13 @@ export default function MovieDetail() {
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [hlsInstance, setHlsInstance] = useState<Hls | null>(null);
+
+  // Translator state
+  const [showTranslator, setShowTranslator] = useState(false);
+  const [transText, setTransText] = useState('');
+  const [transLang, setTransLang] = useState('uz');
+  const [transResult, setTransResult] = useState('');
+  const [transLoading, setTransLoading] = useState(false);
 
   const controlsTimeoutRef = useRef<any>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -196,6 +203,20 @@ export default function MovieDetail() {
     window.open(`https://t.me/${botUsername}?start=movie_${movie.telegram_code}`, '_blank');
   };
 
+  const handleTranslate = async () => {
+    if (!transText.trim()) return;
+    setTransLoading(true);
+    setTransResult('');
+    try {
+      const res = await api.post('/api/vocabulary/translate', { text: transText, targetLang: transLang });
+      setTransResult(res.translation);
+    } catch (e: any) {
+      setTransResult('Xatolik yuz berdi. Qaytadan urinib ko\\'ring.');
+    } finally {
+      setTransLoading(false);
+    }
+  };
+
   if (!movie) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
 
   const canWatch = (!movie.is_locked || user?.subscription === 'premium' || user?.subscription === 'ultra');
@@ -326,7 +347,15 @@ export default function MovieDetail() {
         )}
 
         <div className="space-y-4 px-4 pb-4">
-          <h1 className="text-3xl font-extrabold text-main">{movie.title}</h1>
+          <div className="flex items-start justify-between gap-2">
+            <h1 className="text-3xl font-extrabold text-main">{movie.title}</h1>
+            <button 
+              onClick={() => setShowTranslator(true)} 
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-xl transition-colors font-semibold text-xs whitespace-nowrap border border-indigo-500/20"
+            >
+              <Languages className="w-4 h-4" /> Tarjimon
+            </button>
+          </div>
           
           {movie.info_html ? (
             <div className="rounded-none md:rounded-3xl overflow-hidden border-y md:border border-theme shadow-xl">
@@ -382,6 +411,58 @@ export default function MovieDetail() {
           )}
         </div>
       </div>
+
+      {/* Translator Modal */}
+      {showTranslator && (
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-surface border border-theme rounded-3xl p-5 shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <button 
+              onClick={() => setShowTranslator(false)} 
+              className="absolute top-4 right-4 p-2 text-muted hover:text-main bg-elevated rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="text-xl font-bold text-main flex items-center gap-2 mb-4">
+              <Languages className="w-6 h-6 text-primary" /> Tarjimon
+            </h2>
+
+            <div className="space-y-4">
+              <textarea 
+                value={transText} 
+                onChange={e => setTransText(e.target.value)} 
+                placeholder="Matnni kiriting..." 
+                className="w-full bg-elevated border border-theme rounded-xl px-4 py-3 text-main outline-none focus:border-primary transition-colors min-h-[100px] resize-none"
+              />
+
+              <div className="flex gap-2 bg-elevated p-1 rounded-xl">
+                {[{id:'en', label:'En'}, {id:'uz', label:'Uz'}, {id:'ru', label:'Ru'}].map(l => (
+                  <button 
+                    key={l.id} 
+                    onClick={() => setTransLang(l.id)}
+                    className={`flex-1 py-1.5 text-sm font-bold rounded-lg transition-colors ${transLang === l.id ? 'bg-primary text-white shadow-md' : 'text-muted hover:text-main'}`}
+                  >
+                    {l.label}
+                  </button>
+                ))}
+              </div>
+
+              <button 
+                onClick={handleTranslate} 
+                disabled={transLoading || !transText.trim()}
+                className="w-full py-3 bg-gradient-to-r from-primary to-blue-600 text-white font-bold rounded-xl shadow-lg shadow-primary/30 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {transLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Tarjima qilish'}
+              </button>
+
+              {transResult && (
+                <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl mt-4">
+                  <p className="text-main leading-relaxed whitespace-pre-wrap">{transResult}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

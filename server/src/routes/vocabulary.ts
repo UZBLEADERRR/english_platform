@@ -113,3 +113,31 @@ vocabularyRouter.put('/words/:id', adminAuth, async (req, res) => {
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 });
+// Translate text (Movie detail page uses this)
+vocabularyRouter.post('/translate', async (req, res) => {
+  const { text, targetLang } = req.body;
+  if (!text || !targetLang) return res.status(400).json({ error: 'Missing text or targetLang' });
+
+  const langNames: Record<string, string> = {
+    en: 'English',
+    uz: 'Uzbek',
+    ru: 'Russian'
+  };
+
+  const language = langNames[targetLang] || 'Uzbek';
+
+  try {
+    const prompt = `Translate the following text to ${language}. Return ONLY the direct translation, without any explanations, formatting, warnings, or quotes. Here is the text:
+"${text}"`;
+
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-3-flash-preview',
+    });
+    const result = await model.generateContent(prompt);
+    const translation = result.response.text()?.trim() || '';
+    res.json({ translation });
+  } catch (error: any) {
+    console.error('Translation error:', error);
+    res.status(500).json({ error: 'Tarjima qilishda xatolik yuz berdi' });
+  }
+});
