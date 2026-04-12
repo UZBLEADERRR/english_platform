@@ -19,6 +19,49 @@ const elementIcons: Record<string, any> = {
   mistake: XCircle,
 };
 
+const WebviewElement = ({ content, onBack }: { content: any, onBack: () => void }) => {
+  let finalHtml = content.html_code || '';
+  if (finalHtml && !finalHtml.includes('<html') && (finalHtml.includes('import React') || finalHtml.includes('export default'))) {
+    const cleanCode = finalHtml.replace(/import\s+.*?from\s+['"].*?['"];?\n?/g, '');
+    finalHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    ${cleanCode}
+    if (typeof App !== 'undefined') {
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(React.createElement(App));
+    }
+  </script>
+</body>
+</html>`;
+  }
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-white flex flex-col animate-in slide-in-from-bottom-4 duration-300">
+      <div className="absolute top-4 left-4 z-10">
+        <button onClick={onBack} className="w-11 h-11 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white shadow-lg transition-colors">
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+      </div>
+      <iframe
+        srcDoc={finalHtml}
+        className="w-full flex-1 border-none bg-white"
+        sandbox="allow-scripts allow-same-origin allow-forms"
+      />
+    </div>
+  );
+};
+
 export default function LessonView() {
   const { topicId } = useParams();
   const navigate = useNavigate();
@@ -93,58 +136,8 @@ export default function LessonView() {
         );
       }
 
-      case 'webview': {
-        const iframeRef = React.createRef<HTMLIFrameElement>();
-        const autoResize = () => {
-          try {
-            const iframe = iframeRef.current;
-            if (iframe && iframe.contentDocument) {
-              const h = iframe.contentDocument.documentElement.scrollHeight;
-              iframe.style.height = h + 'px';
-            }
-          } catch (e) {}
-        };
-        
-        // Render JSX natively if missing HTML tags
-        let finalHtml = content.html_code || '';
-        if (finalHtml && !finalHtml.includes('<html') && (finalHtml.includes('import React') || finalHtml.includes('export default'))) {
-          const cleanCode = finalHtml.replace(/import\s+.*?from\s+['"].*?['"];?\n?/g, '');
-          finalHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body>
-  <div id="root"></div>
-  <script type="text/babel">
-    ${cleanCode}
-    if (typeof App !== 'undefined') {
-      const root = ReactDOM.createRoot(document.getElementById('root'));
-      root.render(React.createElement(App));
-    }
-  </script>
-</body>
-</html>`;
-        }
-
-        return (
-          <div className="w-full overflow-hidden border-y border-theme shadow-lg bg-white">
-            <iframe
-              ref={iframeRef}
-              srcDoc={finalHtml}
-              className="w-full border-none"
-              style={{ minHeight: 'calc(100dvh - 80px)', height: '100%' }}
-              sandbox="allow-scripts allow-same-origin allow-forms"
-              onLoad={autoResize}
-            />
-          </div>
-        );
-      }
+      case 'webview':
+        return <WebviewElement content={content} onBack={() => navigate(-1)} />;
 
       case 'quiz': {
         const answered = quizAnswers[id] !== undefined;
@@ -202,16 +195,17 @@ export default function LessonView() {
     }
   };
 
-  // If we have a webview, it should occupy the majority of the screen but not overflow it
   const hasWebview = elements.some(el => el.element_type === 'webview');
 
+  if (hasWebview) {
+    const webviewEl = elements.find(el => el.element_type === 'webview');
+    return <WebviewElement content={webviewEl.content} onBack={() => navigate(-1)} />;
+  }
+
   return (
-    <div className={cn(
-      "animate-in slide-in-from-right-4 duration-300 mx-auto pt-4",
-      hasWebview ? "w-full max-w-none flex flex-col min-h-screen" : "max-w-2xl space-y-2 px-0 pb-6"
-    )}>
+    <div className="animate-in slide-in-from-right-4 duration-300 mx-auto pt-4 max-w-2xl space-y-2 px-0 pb-6">
       {elements.map((el) => (
-        <div key={el.id} className={cn(el.element_type === 'webview' ? "w-full flex-1" : "px-4 mb-2")}>
+        <div key={el.id} className="px-4 mb-2">
           {renderElement(el)}
         </div>
       ))}
