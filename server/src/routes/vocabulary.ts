@@ -37,14 +37,20 @@ vocabularyRouter.post('/generate', adminAuth, async (req, res) => {
     
     try {
       const prompt = `For the English word/phrase "${english}":
-1. Give me 1 real-life example sentence using "${english}".
-2. Give me the Uzbek translation of that example sentence.
-3. If possible, give me 2-3 synonyms (English words with similar meaning). If it's a phrase or has no good synonyms, return empty array.
-4. If possible, give me 2-3 antonyms (English words with opposite meaning). If not applicable, return empty array.
-5. If the Uzbek translation is missing, provide one.
+1. "example": Create 1 real-life example sentence in English using "${english}".
+2. "example_translation": Provide the exact Uzbek translation of that example sentence.
+3. "synonyms": Array of 2-3 English synonyms (empty array if not applicable).
+4. "antonyms": Array of 2-3 English antonyms (empty array if not applicable).
+5. "uzbek": The Uzbek translation of "${english}" (use "${uzbek}" if provided, otherwise translate it).
 
-Reply ONLY as JSON:
-{"example": "...", "example_translation": "...", "synonyms": [], "antonyms": [], "uzbek": "${uzbek || '...'}"}`;
+Reply ONLY as valid JSON with this exact structure:
+{
+  "example": "English sentence",
+  "example_translation": "Uzbek sentence",
+  "synonyms": ["word1", "word2"],
+  "antonyms": ["word1", "word2"],
+  "uzbek": "translated word"
+}`;
 
       const model = genAI.getGenerativeModel({
         model: 'gemini-3-flash-preview',
