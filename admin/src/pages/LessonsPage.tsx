@@ -19,6 +19,7 @@ export default function LessonsPage() {
   const [showTopicForm, setShowTopicForm] = useState(false);
   const [elementForm, setElementForm] = useState<any>({ element_type: 'text', content: { text: '' } });
   const [showElementForm, setShowElementForm] = useState(false);
+  const [draggedElementId, setDraggedElementId] = useState<string | null>(null);
 
   useEffect(() => { adminApi.getCategories().then(c => setCategories(c.filter((x: any) => ['grammar','vocabulary','reading','writing','listening','speaking'].includes(x.id)))).catch(() => {}); }, []);
 
@@ -43,6 +44,34 @@ export default function LessonsPage() {
     if (view === 'elements') setView('topics');
     else if (view === 'topics') setView('levels');
     else if (view === 'levels') setView('categories');
+  };
+
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    e.dataTransfer.effectAllowed = 'move';
+    setDraggedElementId(id);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!draggedElementId || draggedElementId === targetId) return;
+
+    const newElements = [...elements];
+    const sourceIndex = newElements.findIndex(el => el.id === draggedElementId);
+    const targetIndex = newElements.findIndex(el => el.id === targetId);
+    
+    const [movedElement] = newElements.splice(sourceIndex, 1);
+    newElements.splice(targetIndex, 0, movedElement);
+    
+    const reorderedElements = newElements.map((el, i) => ({ ...el, sort_order: i }));
+    setElements(reorderedElements);
+    setDraggedElementId(null);
+    
+    await adminApi.reorderElements(reorderedElements.map(el => ({ id: el.id, sort_order: el.sort_order })));
   };
 
   const elementTypes = ['text','image','video','audio','strategy','example','exception','mistake','webview','quiz','link','divider'];
@@ -178,11 +207,22 @@ export default function LessonsPage() {
             </div>
           )}
           {elements.map((el, i) => (
-            <div key={el.id} className="card flex items-center gap-3">
-              <GripVertical className="w-4 h-4 text-slate-500 cursor-grab" />
-              <span className="px-2 py-0.5 bg-indigo-500/10 text-indigo-400 rounded text-xs font-mono">{el.element_type}</span>
-              <p className="flex-1 text-slate-300 text-sm truncate">{JSON.stringify(el.content).substring(0, 60)}...</p>
-              <button onClick={() => deleteElement(el.id)} className="p-1.5 text-red-400 hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+            <div 
+              key={el.id} 
+              draggable 
+              onDragStart={(e) => handleDragStart(e, el.id)}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, el.id)}
+              className={`card flex items-center gap-3 transition-all ${draggedElementId === el.id ? 'opacity-50 scale-[0.98] border-primary/50 bg-primary/5' : 'hover:border-primary/20 cursor-move'}`}
+            >
+              <div className="p-2 cursor-grab active:cursor-grabbing hover:bg-slate-800 rounded -ml-2 shrink-0">
+                <GripVertical className="w-4 h-4 text-slate-500" />
+              </div>
+              <span className="px-2 py-0.5 bg-indigo-500/10 text-indigo-400 rounded text-xs font-mono shrink-0">{el.element_type}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-slate-300 text-sm truncate">{JSON.stringify(el.content).substring(0, 100)}...</p>
+              </div>
+              <button onClick={() => deleteElement(el.id)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg shrink-0 transition-colors"><Trash2 className="w-4 h-4" /></button>
             </div>
           ))}
         </div>
