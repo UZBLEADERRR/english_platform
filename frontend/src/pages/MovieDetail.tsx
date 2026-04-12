@@ -211,7 +211,7 @@ export default function MovieDetail() {
       const res = await api.post('/api/vocabulary/translate', { text: transText, targetLang: transLang });
       setTransResult(res.translation);
     } catch (e: any) {
-      setTransResult('Xatolik yuz berdi. Qaytadan urinib ko\\'ring.');
+      setTransResult("Xatolik yuz berdi. Qaytadan urinib ko'ring.");
     } finally {
       setTransLoading(false);
     }
