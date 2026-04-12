@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
+import { useAppStore } from '../store';
 import { ArrowLeft, Volume2, CheckCircle, XCircle, AlertTriangle, Lightbulb, ExternalLink } from 'lucide-react';
 import { cn } from '../utils';
 
@@ -67,6 +68,14 @@ export default function LessonView() {
   const navigate = useNavigate();
   const [elements, setElements] = useState<any[]>([]);
   const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({});
+  const { setHideNav } = useAppStore();
+
+  const hasWebview = elements.some(el => el.element_type === 'webview');
+
+  useEffect(() => {
+    setHideNav(hasWebview);
+    return () => setHideNav(false);
+  }, [hasWebview, setHideNav]);
 
   useEffect(() => {
     if (!topicId) return;
@@ -194,8 +203,6 @@ export default function LessonView() {
         return null;
     }
   };
-
-  const hasWebview = elements.some(el => el.element_type === 'webview');
 
   if (hasWebview) {
     const webviewEl = elements.find(el => el.element_type === 'webview');
