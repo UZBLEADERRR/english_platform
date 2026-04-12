@@ -101,14 +101,38 @@ export default function LessonsPage() {
             </div>
           )}
           {topics.map(topic => (
-            <div key={topic.id} className="card flex items-center gap-3">
-              {topic.icon_url && <img src={topic.icon_url} alt="" className="w-10 h-10 rounded-lg object-cover" />}
-              <div className="flex-1"><p className="text-white font-medium text-sm">{topic.title}</p></div>
-              <button onClick={() => toggleTopicLock(topic)} className={`p-1.5 rounded-lg text-xs ${topic.is_locked ? 'text-red-400' : 'text-green-400'}`}>
-                {topic.is_locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
-              </button>
-              <button onClick={() => loadElements(topic.id)} className="btn-secondary text-xs">Darslar</button>
-              <button onClick={() => deleteTopic(topic.id)} className="p-1.5 text-red-400 hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+            <div key={topic.id} className="card flex items-start gap-3">
+              {topic.icon_url && <img src={topic.icon_url} alt="" className="w-10 h-10 rounded-lg object-contain bg-surface" />}
+              <div className="flex-1 flex flex-col gap-2">
+                <input 
+                  defaultValue={topic.title} 
+                  className="input px-3 py-1.5 text-sm h-auto" 
+                  onBlur={e => {
+                    if (e.target.value && e.target.value !== topic.title) {
+                      adminApi.updateTopic(topic.id, { title: e.target.value }).then(() => loadTopics(selectedLevel));
+                    }
+                  }} 
+                />
+                <input 
+                  defaultValue={topic.icon_url || ''} 
+                  placeholder="Icon URL (ixtiyoriy)" 
+                  className="input px-3 py-1.5 text-xs h-auto font-mono bg-transparent border-theme focus:bg-elevated" 
+                  onBlur={e => {
+                    if (e.target.value !== (topic.icon_url || '')) {
+                      adminApi.updateTopic(topic.id, { icon_url: e.target.value || null }).then(() => loadTopics(selectedLevel));
+                    }
+                  }} 
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <button onClick={() => toggleTopicLock(topic)} className={`p-1.5 rounded-lg text-xs ${topic.is_locked ? 'text-red-400 bg-red-400/10' : 'text-green-400 bg-green-400/10'}`}>
+                    {topic.is_locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                  </button>
+                  <button onClick={() => deleteTopic(topic.id)} className="p-1.5 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                </div>
+                <button onClick={() => loadElements(topic.id)} className="btn-secondary w-full text-xs">Darslar <ChevronRight className="w-3 h-3 inline" /></button>
+              </div>
             </div>
           ))}
         </div>
