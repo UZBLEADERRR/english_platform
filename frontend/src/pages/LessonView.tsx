@@ -20,7 +20,7 @@ const elementIcons: Record<string, any> = {
   mistake: XCircle,
 };
 
-const WebviewElement = ({ content, onBack }: { content: any, onBack: () => void }) => {
+const WebviewElement = ({ content }: { content: any }) => {
   let finalHtml = content.html_code || '';
   if (finalHtml && !finalHtml.includes('<html') && (finalHtml.includes('import React') || finalHtml.includes('export default'))) {
     const cleanCode = finalHtml.replace(/import\s+.*?from\s+['"].*?['"];?\n?/g, '');
@@ -34,7 +34,7 @@ const WebviewElement = ({ content, onBack }: { content: any, onBack: () => void 
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="m-0 p-0">
   <div id="root"></div>
   <script type="text/babel">
     ${cleanCode}
@@ -48,15 +48,10 @@ const WebviewElement = ({ content, onBack }: { content: any, onBack: () => void 
   }
 
   return (
-    <div className="fixed inset-0 z-[200] bg-white flex flex-col animate-in slide-in-from-bottom-4 duration-300">
-      <div className="absolute top-4 left-4 z-10">
-        <button onClick={onBack} className="w-11 h-11 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white shadow-lg transition-colors">
-          <ArrowLeft className="w-6 h-6" />
-        </button>
-      </div>
+    <div className="w-full bg-surface shadow-xl border-y border-theme relative flex flex-col">
       <iframe
         srcDoc={finalHtml}
-        className="w-full flex-1 border-none bg-white"
+        className="w-full border-none bg-white min-h-[calc(100vh-64px)]"
         sandbox="allow-scripts allow-same-origin allow-forms"
       />
     </div>
@@ -204,18 +199,25 @@ export default function LessonView() {
     }
   };
 
-  if (hasWebview) {
-    const webviewEl = elements.find(el => el.element_type === 'webview');
-    return <WebviewElement content={webviewEl.content} onBack={() => navigate(-1)} />;
-  }
-
   return (
-    <div className="animate-in slide-in-from-right-4 duration-300 mx-auto pt-4 max-w-2xl space-y-2 px-0 pb-6">
-      {elements.map((el) => (
-        <div key={el.id} className="px-4 mb-2">
-          {renderElement(el)}
-        </div>
-      ))}
+    <div className={cn(
+      "animate-in slide-in-from-right-4 duration-300 mx-auto pt-4 pb-12",
+      hasWebview ? "w-full max-w-none px-0" : "max-w-2xl px-4 space-y-3"
+    )}>
+      {elements.map((el) => {
+        if (el.element_type === 'webview') {
+          return (
+            <div key={el.id} className="w-full flex-1">
+              <WebviewElement content={el.content} />
+            </div>
+          );
+        }
+        return (
+          <div key={el.id} className={hasWebview ? "max-w-2xl mx-auto px-4 w-full mb-3" : ""}>
+            {renderElement(el)}
+          </div>
+        );
+      })}
     </div>
   );
 }
