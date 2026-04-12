@@ -63,14 +63,14 @@ export default function LessonView() {
   const navigate = useNavigate();
   const [elements, setElements] = useState<any[]>([]);
   const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({});
-  const { setHideNav } = useAppStore();
+  const { setIsNavbarHidden } = useAppStore();
 
   const hasWebview = elements.some(el => el.element_type === 'webview');
 
   useEffect(() => {
-    setHideNav(hasWebview);
-    return () => setHideNav(false);
-  }, [hasWebview, setHideNav]);
+    setIsNavbarHidden(hasWebview);
+    return () => setIsNavbarHidden(false);
+  }, [hasWebview, setIsNavbarHidden]);
 
   useEffect(() => {
     if (!topicId) return;
