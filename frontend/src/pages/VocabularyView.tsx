@@ -74,8 +74,13 @@ export default function VocabularyView() {
   return (
     <div className="animate-in fade-in duration-500 pb-8">
       {/* Banner */}
-      <div className="relative w-full h-48 md:h-64 rounded-b-[2rem] overflow-hidden mb-6 shadow-xl">
-        <img src={bannerImage} alt={topicTitle} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+      <div className="relative w-full h-48 md:h-64 rounded-b-[2rem] overflow-hidden mb-6 shadow-xl bg-surface">
+        <img 
+          src={bannerImage} 
+          alt={topicTitle} 
+          className={`w-full h-full ${topic?.icon_url ? 'object-contain p-2' : 'object-cover'}`} 
+          referrerPolicy="no-referrer" 
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/40 to-transparent" />
         <div className="absolute bottom-6 left-6 right-6">
           <span className="px-3 py-1 bg-primary/20 text-primary rounded-lg text-xs font-bold uppercase tracking-wider backdrop-blur-md border border-primary/30">Vocabulary</span>
