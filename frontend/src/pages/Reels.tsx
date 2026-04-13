@@ -38,6 +38,23 @@ export default function Reels() {
     }).catch(() => { setLoading(false); });
   }, [selectedCat]);
 
+  useEffect(() => {
+    const tg = (window as any).Telegram?.WebApp;
+    if (tg) {
+      if (selectedCat) {
+        tg.BackButton.show();
+        const handleBack = () => setSelectedCat('');
+        tg.onEvent('backButtonClicked', handleBack);
+        return () => {
+          tg.offEvent('backButtonClicked', handleBack);
+          tg.BackButton.hide();
+        };
+      } else {
+        tg.BackButton.hide();
+      }
+    }
+  }, [selectedCat]);
+
   const handleAction = async (isKnown: boolean) => {
     const current = words[currentIndex];
     if (!current) return;
@@ -60,114 +77,126 @@ export default function Reels() {
   };
 
   return (
-    <div className="absolute inset-0 pt-[60px] bg-black flex items-center justify-center overflow-hidden">
-      {/* Category selector — show even for 1 category */}
-      {categories.length > 0 && (
-        <div className="absolute top-[75px] left-4 right-16 z-20 flex gap-2 overflow-x-auto no-scrollbar">
-          {categories.map(cat => (
-            <button key={cat.id} onClick={() => setSelectedCat(cat.id)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${selectedCat === cat.id ? 'bg-white text-black' : 'bg-white/20 text-white border border-white/20'}`}>
-              {cat.name}
-            </button>
-          ))}
+    <div className="absolute inset-0 pt-[60px] bg-black flex flex-col overflow-hidden">
+      {/* Category selector — show only if no category selected */}
+      {!selectedCat && categories.length > 0 && (
+        <div className="p-4 space-y-4 overflow-y-auto">
+          <h1 className="text-2xl font-bold text-white mb-4">Kategoriyalar</h1>
+          <div className="grid grid-cols-1 gap-3">
+            {categories.map(cat => (
+              <button key={cat.id} onClick={() => setSelectedCat(cat.id)}
+                className="flex items-center gap-4 p-4 rounded-2xl bg-surface border border-theme hover:border-primary/50 transition-all text-left group">
+                <div className="w-12 h-12 rounded-xl overflow-hidden bg-elevated">
+                  <img src={cat.icon_url} className="w-full h-full object-cover" alt="" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-main font-bold">{cat.name}</h3>
+                  <p className="text-xs text-muted">{cat.description || 'So\'zlarni yodlash'}</p>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
-      {loading ? (
-        <div className="flex flex-col items-center gap-3 text-white">
-          <div className="w-10 h-10 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-          <p className="text-sm text-white/60">Yuklanmoqda...</p>
-        </div>
-      ) : words.length === 0 ? (
-        <div className="flex flex-col items-center justify-center text-center text-white p-4">
-          <span className="text-5xl mb-4">📭</span>
-          <h2 className="text-xl font-bold mb-2">So'zlar topilmadi</h2>
-          <p className="text-white/60 text-sm">Admin so'z qo'shishi kerak</p>
-        </div>
-      ) : currentIndex >= words.length ? (
-        <div className="flex flex-col items-center justify-center text-center text-white p-4">
-          <span className="text-5xl mb-4">🎉</span>
-          <h2 className="text-2xl font-bold mb-4">Barcha so'zlar tugadi!</h2>
-          <button onClick={() => { setCurrentIndex(0); setHistory([]); }}
-            className="px-6 py-3 bg-primary text-white rounded-full font-medium">Qaytadan</button>
-        </div>
-      ) : (
-        <div className="relative w-full h-full flex flex-col overflow-hidden z-10">
-          {/* Current card */}
-          <div className="absolute inset-0 w-full h-full page-enter flex flex-col bg-black" key={currentIndex}>
-            {(() => {
-              const { mainWord, translation, example, example_translation } = parseWord(words[currentIndex]?.word);
-              return (
-                <div className="pt-20 px-4 pb-4 bg-gradient-to-b from-black via-black/90 to-black/80 border-b border-white/10">
-                  <div className="max-w-sm mx-auto flex flex-col items-center text-center">
-                    <h2 className="text-3xl font-extrabold text-white mb-1">{mainWord}</h2>
-                    {translation && <p className="text-lg font-medium text-green-400 mb-3">{translation}</p>}
-                    {example && (
-                      <div className="bg-white/5 backdrop-blur-sm p-3 rounded-2xl border border-white/10 w-full">
-                        <p className="text-[14px] font-medium text-white italic leading-relaxed">"{example}"</p>
-                        {example_translation && <p className="text-[13px] text-green-300/80 mt-1 font-medium">{example_translation}</p>}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })()}
-
-            <div className="relative flex-1 w-full overflow-hidden">
-              {words[currentIndex]?.image_url?.match(/\.(mp4|webm|m3u8)/i) ? (
-                <video 
-                  src={words[currentIndex]?.image_url} 
-                  className="w-full h-full object-cover" 
-                  autoPlay={true}
-                  loop={true}
-                  muted={false}
-                  playsInline={true}
-                />
-              ) : (
-                <img 
-                  src={words[currentIndex]?.image_url} 
-                  alt="" 
-                  className="w-full h-full object-cover" 
-                  referrerPolicy="no-referrer" 
-                  crossOrigin="anonymous"
-                  onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80')} 
-                />
-              )}
-              {/* Subtle gradient overlay at bottom for visibility */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-              
-              {selectedCat && categories.find(c => c.id === selectedCat) && (
-                <div className="absolute bottom-6 left-0 w-full text-center pointer-events-none">
-                  <span className="text-[10px] font-semibold px-3 py-1 bg-black/50 text-white/50 rounded-full select-none">
-                    {categories.find(c => c.id === selectedCat)?.name}
-                  </span>
-                </div>
-              )}
+      {selectedCat && (
+        <>
+          {loading ? (
+            <div className="flex-1 flex flex-col items-center justify-center gap-3 text-white">
+              <div className="w-10 h-10 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+              <p className="text-sm text-white/60">Yuklanmoqda...</p>
             </div>
-          </div>
+          ) : words.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-center text-white p-4">
+              <span className="text-5xl mb-4">📭</span>
+              <h2 className="text-xl font-bold mb-2">So'zlar topilmadi</h2>
+              <button onClick={() => setSelectedCat('')} className="mt-4 text-primary font-medium">Orqaga qaytish</button>
+            </div>
+          ) : currentIndex >= words.length ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-center text-white p-4">
+              <span className="text-5xl mb-4">🎉</span>
+              <h2 className="text-2xl font-bold mb-4">Barcha so'zlar tugadi!</h2>
+              <div className="flex gap-3">
+                <button onClick={() => { setCurrentIndex(0); setHistory([]); }}
+                  className="px-6 py-3 bg-primary text-white rounded-full font-medium">Qaytadan</button>
+                <button onClick={() => setSelectedCat('')}
+                  className="px-6 py-3 bg-surface border border-theme text-white rounded-full font-medium">Boshqa bo'lim</button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 relative flex flex-col overflow-hidden z-10 w-full h-full bg-black">
+              {/* Current card */}
+              <div className="flex-1 flex flex-col bg-black animate-in slide-in-from-right duration-300" key={currentIndex}>
+                {(() => {
+                  const { mainWord, translation, example, example_translation } = parseWord(words[currentIndex]?.word);
+                  return (
+                    <>
+                      {/* Top Section - Word & Translation */}
+                      <div className="p-6 text-center space-y-2 bg-gradient-to-b from-black to-transparent">
+                        <h2 className="text-4xl font-black text-white tracking-tight drop-shadow-md">{mainWord}</h2>
+                        {translation && <p className="text-xl font-bold text-green-400 uppercase tracking-wider">{translation}</p>}
+                      </div>
 
-          {/* Actions */}
-          <div className="absolute right-4 bottom-24 flex flex-col gap-6 items-center z-10">
-            <button onClick={() => handleAction(true)} className="flex flex-col items-center gap-1 group">
-              <div className="p-3.5 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white group-hover:bg-green-500/50 transition-colors shadow-lg">
-                <Heart className="w-7 h-7" />
+                      {/* Middle Section - Square Media */}
+                      <div className="relative w-full aspect-square bg-elevated overflow-hidden border-y border-white/5">
+                        {words[currentIndex]?.image_url?.match(/\.(mp4|webm|m3u8)/i) ? (
+                          <video src={words[currentIndex]?.image_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
+                        ) : (
+                          <img 
+                            src={words[currentIndex]?.image_url} 
+                            alt="" 
+                            className="w-full h-full object-cover" 
+                            referrerPolicy="no-referrer" 
+                            crossOrigin="anonymous"
+                            onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80')} 
+                          />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                      </div>
+
+                      {/* Bottom Section - Example */}
+                      <div className="flex-1 p-6 flex flex-col justify-center bg-gradient-to-t from-black to-transparent">
+                        <div className="max-w-md mx-auto w-full space-y-4">
+                          {example && (
+                            <div className="bg-white/5 backdrop-blur-md p-5 rounded-3xl border border-white/10 shadow-2xl">
+                              <p className="text-lg font-medium text-white italic leading-relaxed text-center">"{example}"</p>
+                              {example_translation && (
+                                <p className="text-sm text-green-300/80 mt-3 font-semibold text-center border-t border-white/5 pt-3">
+                                  {example_translation}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
+
+                {/* Floating Actions */}
+                <div className="absolute right-4 bottom-8 flex flex-col gap-5 items-center z-20">
+                  <button onClick={() => handleAction(true)} className="group flex flex-col items-center gap-1">
+                    <div className="p-4 rounded-full bg-green-500/20 backdrop-blur-xl border border-green-500/30 text-green-400 group-hover:bg-green-500 group-hover:text-white transition-all shadow-lg active:scale-90">
+                      <Heart className="w-7 h-7" />
+                    </div>
+                    <span className="text-[10px] font-black text-white/50 uppercase tracking-tighter">{t('iknow')}</span>
+                  </button>
+                  <button onClick={() => handleAction(false)} className="group flex flex-col items-center gap-1">
+                    <div className="p-4 rounded-full bg-red-500/20 backdrop-blur-xl border border-red-500/30 text-red-400 group-hover:bg-red-500 group-hover:text-white transition-all shadow-lg active:scale-90">
+                      <X className="w-7 h-7" />
+                    </div>
+                    <span className="text-[10px] font-black text-white/50 uppercase tracking-tighter">{t('idontknow')}</span>
+                  </button>
+                  <button onClick={handleUndo} disabled={history.length === 0} className="group flex flex-col items-center gap-1 disabled:opacity-20">
+                    <div className="p-4 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 text-white group-hover:bg-white group-hover:text-black transition-all shadow-lg active:scale-90">
+                      <Undo2 className="w-7 h-7" />
+                    </div>
+                  </button>
+                </div>
               </div>
-              <span className="text-white text-[10px] font-bold drop-shadow-md">{t('iknow')}</span>
-            </button>
-            <button onClick={() => handleAction(false)} className="flex flex-col items-center gap-1 group">
-              <div className="p-3.5 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white group-hover:bg-red-500/50 transition-colors shadow-lg">
-                <X className="w-7 h-7" />
-              </div>
-              <span className="text-white text-[10px] font-bold drop-shadow-md">{t('idontknow')}</span>
-            </button>
-            <button onClick={handleUndo} disabled={history.length === 0} className="flex flex-col items-center gap-1 group disabled:opacity-30">
-              <div className="p-3.5 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white group-hover:bg-blue-500/50 transition-colors shadow-lg">
-                <Undo2 className="w-7 h-7" />
-              </div>
-              <span className="text-white text-[10px] font-bold drop-shadow-md">{t('undo')}</span>
-            </button>
-          </div>
-        </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

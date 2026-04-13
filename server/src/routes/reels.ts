@@ -152,10 +152,10 @@ Reply ONLY as JSON:
       const imageDesc = parsed.image_description || `A cute cartoon of ${word}`;
 
       // Step 2: Generate image via Pollinations with a very specific prompt
-      const imagePrompt = `A slightly cartoonish but realistic 3D illustration: ${imageDesc}. No text, no letters, no words. Simple, clean, fun, educational mobile wallpaper style, 9:16 aspect ratio, bright background.`;
+      const imagePrompt = `High-quality 2D Webtoon comic style illustration, aesthetic and detailed: ${imageDesc}. No text, no letters, no words. Cinematic lighting, professional digital art, 1:1 aspect ratio, clean background.`;
       const encodedPrompt = encodeURIComponent(imagePrompt);
       const seed = Math.floor(Math.random() * 100000);
-      const image_url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=720&height=1280&nologo=true&seed=${seed}&model=gemini-2.5-flash-image`;
+      const image_url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true&seed=${seed}&model=gemini-2.5-flash-image`;
 
       const combinedWord = `${word}||${translation}||${example}||${example_translation}`;
       
