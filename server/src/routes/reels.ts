@@ -152,7 +152,7 @@ Reply ONLY as JSON:
       const imageDesc = parsed.image_description || `A cute cartoon of ${word}`;
 
       // Step 2: Generate image via Pollinations with a very specific prompt
-      const imagePrompt = `High-quality 2D Webtoon comic style illustration, aesthetic and detailed: ${imageDesc}. No text, no letters, no words. Cinematic lighting, professional digital art, 1:1 aspect ratio, clean background.`;
+      const imagePrompt = `High-quality aesthetic Seinen Manga style illustration, detailed Manhwa digital art: ${imageDesc}. No text, no letters, no words. Sharp features, cinematic lighting, professional composition, sophisticated mood, strictly for a mature audience, no childish cartoon elements, 1:1 aspect ratio.`;
       const encodedPrompt = encodeURIComponent(imagePrompt);
       const seed = Math.floor(Math.random() * 100000);
       const image_url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true&seed=${seed}&model=gemini-2.5-flash-image`;

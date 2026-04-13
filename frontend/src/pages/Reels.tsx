@@ -40,14 +40,25 @@ export default function Reels() {
 
   useEffect(() => {
     const tg = (window as any).Telegram?.WebApp;
+    const handleBack = () => setSelectedCat('');
+    const handlePopState = () => {
+      if (selectedCat) {
+        handleBack();
+      }
+    };
+
     if (tg) {
       if (selectedCat) {
         tg.BackButton.show();
-        const handleBack = () => setSelectedCat('');
         tg.onEvent('backButtonClicked', handleBack);
+        // Trap the back button
+        window.history.pushState({ section: 'reels_words' }, '', window.location.href);
+        window.addEventListener('popstate', handlePopState);
+
         return () => {
           tg.offEvent('backButtonClicked', handleBack);
           tg.BackButton.hide();
+          window.removeEventListener('popstate', handlePopState);
         };
       } else {
         tg.BackButton.hide();
@@ -81,17 +92,17 @@ export default function Reels() {
       {/* Category selector — show only if no category selected */}
       {!selectedCat && categories.length > 0 && (
         <div className="p-4 space-y-4 overflow-y-auto">
-          <h1 className="text-2xl font-bold text-white mb-4">Kategoriyalar</h1>
+          <h1 className="text-2xl font-black text-white mb-4 tracking-tight">Kategoriyalar</h1>
           <div className="grid grid-cols-1 gap-3">
             {categories.map(cat => (
               <button key={cat.id} onClick={() => setSelectedCat(cat.id)}
-                className="flex items-center gap-4 p-4 rounded-2xl bg-surface border border-theme hover:border-primary/50 transition-all text-left group">
-                <div className="w-12 h-12 rounded-xl overflow-hidden bg-elevated">
-                  <img src={cat.icon_url} className="w-full h-full object-cover" alt="" />
+                className="flex items-center gap-4 p-5 rounded-[2rem] bg-surface border border-theme hover:border-primary/50 transition-all text-left group active:scale-[0.98]">
+                <div className="w-14 h-14 rounded-2xl overflow-hidden bg-elevated shadow-lg">
+                  <img src={cat.icon_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-main font-bold">{cat.name}</h3>
-                  <p className="text-xs text-muted">{cat.description || 'So\'zlarni yodlash'}</p>
+                  <h3 className="text-main font-bold text-lg">{cat.name}</h3>
+                  <p className="text-xs text-muted font-medium opacity-70">{cat.description || 'So\'zlarni yodlash'}</p>
                 </div>
               </button>
             ))}
@@ -115,30 +126,34 @@ export default function Reels() {
           ) : currentIndex >= words.length ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center text-white p-4">
               <span className="text-5xl mb-4">🎉</span>
-              <h2 className="text-2xl font-bold mb-4">Barcha so'zlar tugadi!</h2>
-              <div className="flex gap-3">
+              <h2 className="text-3xl font-black mb-6 tracking-tight">Barcha so'zlar tugadi!</h2>
+              <div className="flex flex-col w-full gap-3 max-w-xs">
                 <button onClick={() => { setCurrentIndex(0); setHistory([]); }}
-                  className="px-6 py-3 bg-primary text-white rounded-full font-medium">Qaytadan</button>
+                  className="w-full py-4 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all">Qaytadan boshlash</button>
                 <button onClick={() => setSelectedCat('')}
-                  className="px-6 py-3 bg-surface border border-theme text-white rounded-full font-medium">Boshqa bo'lim</button>
+                  className="w-full py-4 bg-surface border border-theme text-white rounded-2xl font-bold active:scale-95 transition-all">Boshqa bo'limga o'tish</button>
               </div>
             </div>
           ) : (
             <div className="flex-1 relative flex flex-col overflow-hidden z-10 w-full h-full bg-black">
               {/* Current card */}
-              <div className="flex-1 flex flex-col bg-black animate-in slide-in-from-right duration-300" key={currentIndex}>
+              <div className="flex-1 flex flex-col bg-black animate-in slide-in-from-right duration-500" key={currentIndex}>
                 {(() => {
                   const { mainWord, translation, example, example_translation } = parseWord(words[currentIndex]?.word);
                   return (
                     <>
                       {/* Top Section - Word & Translation */}
-                      <div className="p-6 text-center space-y-2 bg-gradient-to-b from-black to-transparent">
-                        <h2 className="text-4xl font-black text-white tracking-tight drop-shadow-md">{mainWord}</h2>
-                        {translation && <p className="text-xl font-bold text-green-400 uppercase tracking-wider">{translation}</p>}
+                      <div className="p-8 text-center space-y-3 bg-gradient-to-b from-black via-black/80 to-transparent">
+                        <h2 className="text-5xl font-black text-white tracking-tighter drop-shadow-xl">{mainWord}</h2>
+                        {translation && (
+                          <p className="text-2xl font-black text-red-500 uppercase tracking-widest drop-shadow-md">
+                            {translation}
+                          </p>
+                        )}
                       </div>
 
                       {/* Middle Section - Square Media */}
-                      <div className="relative w-full aspect-square bg-elevated overflow-hidden border-y border-white/5">
+                      <div className="relative w-full aspect-square bg-elevated overflow-hidden border-y border-white/5 shadow-2xl">
                         {words[currentIndex]?.image_url?.match(/\.(mp4|webm|m3u8)/i) ? (
                           <video src={words[currentIndex]?.image_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
                         ) : (
@@ -155,13 +170,13 @@ export default function Reels() {
                       </div>
 
                       {/* Bottom Section - Example */}
-                      <div className="flex-1 p-6 flex flex-col justify-center bg-gradient-to-t from-black to-transparent">
+                      <div className="flex-1 p-6 flex flex-col justify-center bg-gradient-to-t from-black via-black/40 to-transparent">
                         <div className="max-w-md mx-auto w-full space-y-4">
                           {example && (
-                            <div className="bg-white/5 backdrop-blur-md p-5 rounded-3xl border border-white/10 shadow-2xl">
-                              <p className="text-lg font-medium text-white italic leading-relaxed text-center">"{example}"</p>
+                            <div className="bg-white/5 backdrop-blur-xl p-6 rounded-[2.5rem] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                              <p className="text-xl font-semibold text-white/90 italic leading-relaxed text-center">"{example}"</p>
                               {example_translation && (
-                                <p className="text-sm text-green-300/80 mt-3 font-semibold text-center border-t border-white/5 pt-3">
+                                <p className="text-base text-green-400 font-bold text-center border-t border-white/10 mt-4 pt-4 tracking-tight">
                                   {example_translation}
                                 </p>
                               )}
@@ -174,21 +189,21 @@ export default function Reels() {
                 })()}
 
                 {/* Floating Actions */}
-                <div className="absolute right-4 bottom-8 flex flex-col gap-5 items-center z-20">
-                  <button onClick={() => handleAction(true)} className="group flex flex-col items-center gap-1">
-                    <div className="p-4 rounded-full bg-green-500/20 backdrop-blur-xl border border-green-500/30 text-green-400 group-hover:bg-green-500 group-hover:text-white transition-all shadow-lg active:scale-90">
-                      <Heart className="w-7 h-7" />
+                <div className="absolute right-4 bottom-10 flex flex-col gap-6 items-center z-20">
+                  <button onClick={() => handleAction(true)} className="group flex flex-col items-center gap-1.5 transition-all">
+                    <div className="p-4.5 rounded-full bg-green-500/20 backdrop-blur-2xl border border-green-500/40 text-green-500 shadow-[0_0_20px_rgba(34,197,94,0.2)] active:scale-90 transition-transform">
+                      <Heart className="w-8 h-8 fill-current" />
                     </div>
-                    <span className="text-[10px] font-black text-white/50 uppercase tracking-tighter">{t('iknow')}</span>
+                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">{t('iknow')}</span>
                   </button>
-                  <button onClick={() => handleAction(false)} className="group flex flex-col items-center gap-1">
-                    <div className="p-4 rounded-full bg-red-500/20 backdrop-blur-xl border border-red-500/30 text-red-400 group-hover:bg-red-500 group-hover:text-white transition-all shadow-lg active:scale-90">
-                      <X className="w-7 h-7" />
+                  <button onClick={() => handleAction(false)} className="group flex flex-col items-center gap-1.5 transition-all">
+                    <div className="p-4.5 rounded-full bg-red-500/20 backdrop-blur-2xl border border-red-500/40 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.2)] active:scale-90 transition-transform">
+                      <X className="w-8 h-8 stroke-[3]" />
                     </div>
-                    <span className="text-[10px] font-black text-white/50 uppercase tracking-tighter">{t('idontknow')}</span>
+                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">{t('idontknow')}</span>
                   </button>
-                  <button onClick={handleUndo} disabled={history.length === 0} className="group flex flex-col items-center gap-1 disabled:opacity-20">
-                    <div className="p-4 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 text-white group-hover:bg-white group-hover:text-black transition-all shadow-lg active:scale-90">
+                  <button onClick={handleUndo} disabled={history.length === 0} className="group flex flex-col items-center gap-1.5 disabled:opacity-20 transition-all pt-2">
+                    <div className="p-4 rounded-full bg-white/10 backdrop-blur-2xl border border-white/10 text-white active:scale-90 transition-transform shadow-lg">
                       <Undo2 className="w-7 h-7" />
                     </div>
                   </button>
