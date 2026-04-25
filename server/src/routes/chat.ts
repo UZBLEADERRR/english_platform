@@ -155,14 +155,21 @@ chatRouter.post('/send', async (req, res) => {
       .order('created_at')
       .limit(20);
     
-    let chatHistory = (history || []).slice(0, -1).map(msg => ({
-      role: msg.role === 'user' ? 'user' as const : 'model' as const,
-      parts: [{ text: msg.text }]
-    }));
+    // Build history (ensure alternating user -> model -> user -> model)
+    let chatHistory: any[] = [];
+    let expectedRole = 'user';
     
-    // Google GenAI requires history to start with a 'user' message!
-    if (chatHistory.length > 0 && chatHistory[0].role === 'model') {
-      chatHistory.unshift({ role: 'user', parts: [{ text: 'Assalomu alaykum' }] });
+    for (const msg of (history || []).slice(0, -1)) {
+      const role = msg.role === 'user' ? 'user' : 'model';
+      if (role === expectedRole) {
+        chatHistory.push({ role, parts: [{ text: msg.text }] });
+        expectedRole = role === 'user' ? 'model' : 'user';
+      }
+    }
+    
+    // Google GenAI requires history to end with 'model' before we append the new 'user' message
+    if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
+      chatHistory.pop(); // Remove the trailing user message to maintain alternation
     }
     
     const systemInstruction = is_artifact_mode

@@ -91,7 +91,9 @@ export default function AiChat() {
       if (res.creditsUsed !== undefined) updateUser({ ai_credits_used: res.creditsUsed });
       setIsArtifactMode(false);
     } catch (e: any) {
-      if (e.message?.includes('limit')) {
+      if (e.message?.includes('Artifact limit')) {
+        setMessages(p => [...p, { id: `err-${Date.now()}`, role: 'model', text: `⚠️ Bepul tarifda faqat 1 ta ilova yaratish mumkin. Iltimos Premium tarifiga o'ting.` }]);
+      } else if (e.message?.includes('limit')) {
         setMessages(p => [...p, { id: `err-${Date.now()}`, role: 'model', text: `⏰ Kunlik xabar limiti tugadi! Premium: 20 ta, Ultra: cheksiz. /pricing sahifasidan sotib oling.` }]);
       } else {
         setMessages(p => [...p, { id: `err-${Date.now()}`, role: 'model', text: 'Xatolik yuz berdi. Qaytadan urinib ko\'ring.' }]);
