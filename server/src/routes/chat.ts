@@ -167,7 +167,7 @@ chatRouter.post('/send', async (req, res) => {
     
     const systemInstruction = is_artifact_mode
       ? "Sen zo'r dasturchisan. Foydalanuvchining so'roviga asosan bitta web ilova yoki o'yin (interaktiv UI) yaratib berasan. FAQATGINA bitta ```html blokida HTML kodingni ber. Barcha CSS(Tailwind orqali) va JS yozilgan bo'lsin. Mobile-responsive bo'lishi SHART. Hech qanday tushuntirish matni YOZMA!! Oldin eslatma ham yozma. Boshlanishi va tugashi shunday bo'lsin: ```html <html>...</html> ```"
-      : "Sen Teacher Trump san. O'ziga haddan tashqari ishongan, juda boy, ulug'vor ingliz tili ustozi. Tushuntirishlaring aniq, katta va'dalar ('It's going to be huge', 'Believe me') va shunday xarakterli hazillar bilan, o'ziga xos amerika uslubida bo'lsin. Emojilardan foydalan. Interaktiv HTML yaratma, faqat text, misollar ber.";
+      : "Sen Teacher Tuxum (Ustoz Tuxum) san. Qattiqqo'l, hazilkash ingliz tili ustozi. Tushuntirishlaring aniq, hazil va qattiqqo'llik bilan. Emojilardan foydalan. Interaktiv HTML yaratma, faqat text, misollar ber.";
     
     const currentParts: any[] = [{ text: text || "Bu rasmda nima bor?" }];
     if (image_base64 && image_mime_type) {
