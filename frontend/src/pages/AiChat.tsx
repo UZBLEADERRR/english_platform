@@ -27,14 +27,20 @@ export default function AiChat() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (!user) return;
     api.getChatSessions(user.id).then(s => {
       setSessions(s);
       if (s.length > 0) {
-        setCurrentSessionId(s[0].id);
-        api.getChatMessages(s[0].id).then(setMessages);
+        const lastDate = new Date(s[0].updated_at || s[0].created_at).getTime();
+        if (Date.now() - lastDate > 24 * 60 * 60 * 1000) {
+          createNewChat(); // Start a fresh chat if the last one is > 24h old
+        } else {
+          setCurrentSessionId(s[0].id);
+          api.getChatMessages(s[0].id).then(setMessages);
+        }
       } else {
         createNewChat();
       }
@@ -58,7 +64,7 @@ export default function AiChat() {
   };
 
   const createNewChat = async () => {
-    if (!user) return;
+    if (!user) return null;
     try {
       const session = await api.createChatSession(user.id);
       setSessions(p => [session, ...p]);
@@ -66,21 +72,35 @@ export default function AiChat() {
       const msgs = await api.getChatMessages(session.id);
       setMessages(msgs);
       setIsSidebarOpen(false);
-    } catch {}
+      return session.id;
+    } catch { return null; }
   };
 
   const handleSend = async () => {
-    if ((!input.trim() && !selectedImage) || isLoading || !currentSessionId || !user) return;
+    if ((!input.trim() && !selectedImage) || isLoading || !user) return;
+
+    setIsLoading(true);
+    let targetSessionId = currentSessionId;
+    
+    if (!targetSessionId) {
+      targetSessionId = await createNewChat();
+      if (!targetSessionId) {
+        setIsLoading(false);
+        return;
+      }
+    }
 
     const userMsg = { id: `temp-${Date.now()}`, role: 'user', text: input, image_url: selectedImage?.url };
     setMessages(p => [...p, userMsg]);
     const currentInput = input;
     const currentImage = selectedImage;
-    setInput(''); setSelectedImage(null); setIsLoading(true);
+    setInput(''); 
+    setSelectedImage(null); 
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
 
     try {
       const res = await api.sendMessage({
-        session_id: currentSessionId, user_id: user.id, text: currentInput,
+        session_id: targetSessionId, user_id: user.id, text: currentInput,
         image_base64: currentImage?.base64, image_mime_type: currentImage?.mimeType,
         is_artifact_mode: isArtifactMode,
       });
@@ -276,6 +296,7 @@ export default function AiChat() {
               </div>
               <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
               <textarea
+                ref={textareaRef}
                 value={input}
                 onChange={e => {
                   setInput(e.target.value);
