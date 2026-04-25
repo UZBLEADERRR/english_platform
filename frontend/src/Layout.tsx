@@ -163,10 +163,10 @@ export default function Layout() {
 
   return (
     <div className="flex flex-col min-h-[100dvh] bg-bg relative">
-      {/* Bottom Navbar */}
+      {/* Top Navbar */}
       {!hideNavbar && (
-      <nav className="fixed bottom-4 left-4 right-4 z-[100] bg-surface/90 backdrop-blur-xl border border-theme rounded-full drop-shadow-xl">
-        <div className="max-w-lg mx-auto flex items-center justify-around h-14">
+      <nav className="fixed top-2 left-4 right-4 z-[100] bg-surface/90 backdrop-blur-xl border border-theme rounded-full drop-shadow-xl">
+        <div className="max-w-lg mx-auto flex items-center justify-around h-12">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
@@ -227,7 +227,7 @@ export default function Layout() {
         className={cn(
           "flex-1 flex flex-col relative page-enter w-full duration-500 mx-auto",
           isFullBleed ? "max-w-none" : "max-w-7xl px-4 pb-4",
-          !hideNavbar ? "pt-8 pb-24" : "",
+          !hideNavbar ? "pt-24" : "",
           isInSection ? "pt-16" : "",
           hideNavbar && !isInSection ? "pt-8" : ""
         )}
