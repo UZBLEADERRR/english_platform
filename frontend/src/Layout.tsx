@@ -223,9 +223,8 @@ export default function Layout() {
 
       {/* Main Content */}
       <main 
-        key={location.pathname}
         className={cn(
-          "flex-1 flex flex-col relative page-enter w-full duration-500 mx-auto",
+          "flex-1 flex flex-col relative w-full mx-auto",
           isFullBleed ? "max-w-none" : "max-w-7xl px-4 pb-4",
           !hideNavbar ? "pt-24" : "",
           isInSection ? "pt-16" : "",
