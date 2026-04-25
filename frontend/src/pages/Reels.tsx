@@ -143,11 +143,11 @@ export default function Reels() {
                   return (
                     <>
                       {/* Top Section - Word & Translation */}
-                      <div className="p-6 text-center space-y-2 bg-gradient-to-b from-black via-black/80 to-transparent">
-                        <h2 className="text-4xl sm:text-5xl font-black text-red-500 tracking-tighter drop-shadow-xl">{mainWord}</h2>
+                      <div className="p-6 flex flex-row flex-wrap items-baseline justify-center gap-x-3 gap-y-1 bg-gradient-to-b from-black via-black/80 to-transparent">
+                        <h2 className="text-3xl sm:text-5xl font-black text-red-500 tracking-tighter drop-shadow-xl break-words">{mainWord}</h2>
                         {translation && (
-                          <p className="text-xl sm:text-2xl font-black text-green-500 uppercase tracking-widest drop-shadow-md">
-                            {translation}
+                          <p className="text-xl sm:text-3xl font-black text-green-500 uppercase tracking-widest drop-shadow-md break-words">
+                            - {translation}
                           </p>
                         )}
                       </div>
@@ -170,13 +170,32 @@ export default function Reels() {
                       </div>
 
                       {/* Bottom Section - Example */}
-                      <div className="flex-1 px-4 pb-6 flex flex-col justify-center bg-gradient-to-t from-black via-black/40 to-transparent overflow-y-auto">
-                        <div className="max-w-[80%] mr-auto ml-4 w-full space-y-3">
+                      <div className="flex-1 px-4 pb-8 flex flex-col justify-center bg-gradient-to-t from-black via-black/60 to-transparent overflow-y-auto">
+                        <div className="w-full max-w-lg mx-auto text-center space-y-3">
                           {example && (
-                            <div className="bg-white/5 backdrop-blur-xl p-4 rounded-3xl border border-white/10 shadow-2xl">
-                              <p className="text-[16px] sm:text-[17px] font-semibold text-white italic leading-snug">"{example}"</p>
+                            <div className="p-2">
+                              <p className="text-[18px] sm:text-[20px] font-semibold text-white italic leading-snug drop-shadow-md">
+                                {(() => {
+                                  if (!mainWord) return `"${example}"`;
+                                  // Highlight the target word (case insensitive)
+                                  const escapedWord = mainWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                                  const regex = new RegExp(`(${escapedWord})`, 'gi');
+                                  const parts = example.split(regex);
+                                  return (
+                                    <>
+                                      "
+                                      {parts.map((part, i) => 
+                                        part.toLowerCase() === mainWord.toLowerCase() 
+                                          ? <span key={i} className="text-orange-500 font-bold">{part}</span> 
+                                          : part
+                                      )}
+                                      "
+                                    </>
+                                  );
+                                })()}
+                              </p>
                               {example_translation && (
-                                <p className="text-[14px] sm:text-[15px] text-white/90 font-medium border-t border-white/10 mt-3 pt-3">
+                                <p className="text-[15px] sm:text-[16px] text-white/80 font-medium mt-3 drop-shadow-md">
                                   {example_translation}
                                 </p>
                               )}
@@ -189,7 +208,7 @@ export default function Reels() {
                 })()}
 
                 {/* Floating Actions */}
-                <div className="absolute right-3 bottom-8 flex flex-col gap-4 items-center z-20">
+                <div className="absolute right-3 bottom-[18%] flex flex-col gap-4 items-center z-20">
                   <button onClick={() => handleAction(true)} className="group flex flex-col items-center gap-1 transition-all">
                     <div className="p-3.5 rounded-full bg-green-500/20 backdrop-blur-2xl border border-green-500/40 text-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)] active:scale-90 transition-transform">
                       <Heart className="w-6 h-6 fill-current" />
