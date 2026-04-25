@@ -153,7 +153,7 @@ export default function Reels() {
                       </div>
 
                       {/* Middle Section - Square Media */}
-                      <div className="relative w-[85%] mx-auto aspect-square bg-elevated overflow-hidden rounded-3xl border border-white/10 shadow-2xl mt-2 mb-4 shrink-0">
+                      <div className="relative w-[85%] max-w-[400px] mx-auto aspect-square max-h-[45vh] bg-elevated overflow-hidden rounded-3xl border border-white/10 shadow-2xl mt-2 mb-4">
                         {words[currentIndex]?.image_url?.match(/\.(mp4|webm|m3u8)/i) ? (
                           <video src={words[currentIndex]?.image_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
                         ) : (
@@ -176,16 +176,18 @@ export default function Reels() {
                             <div className="p-2">
                               <p className="text-[18px] sm:text-[20px] font-semibold text-white italic leading-snug drop-shadow-md">
                                 {(() => {
-                                  if (!mainWord) return `"${example}"`;
+                                  const trimmedWord = mainWord?.trim() || '';
+                                  if (!trimmedWord) return `"${example}"`;
                                   // Highlight the target word (case insensitive)
-                                  const escapedWord = mainWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                                  const regex = new RegExp(`(${escapedWord})`, 'gi');
-                                  const parts = example.split(regex);
+                                  const escapedWord = trimmedWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                                  const regex = new RegExp(`\\b(${escapedWord})\\b|(${escapedWord})`, 'gi'); // Try word boundary first
+                                  
+                                  const parts = example.split(new RegExp(`(${escapedWord})`, 'gi'));
                                   return (
                                     <>
                                       "
                                       {parts.map((part, i) => 
-                                        part.toLowerCase() === mainWord.toLowerCase() 
+                                        part.toLowerCase() === trimmedWord.toLowerCase() 
                                           ? <span key={i} className="text-orange-500 font-bold">{part}</span> 
                                           : part
                                       )}
