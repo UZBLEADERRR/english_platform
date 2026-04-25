@@ -143,17 +143,17 @@ export default function Reels() {
                   return (
                     <>
                       {/* Top Section - Word & Translation */}
-                      <div className="p-8 text-center space-y-3 bg-gradient-to-b from-black via-black/80 to-transparent">
-                        <h2 className="text-5xl font-black text-white tracking-tighter drop-shadow-xl">{mainWord}</h2>
+                      <div className="p-6 text-center space-y-2 bg-gradient-to-b from-black via-black/80 to-transparent">
+                        <h2 className="text-4xl sm:text-5xl font-black text-red-500 tracking-tighter drop-shadow-xl">{mainWord}</h2>
                         {translation && (
-                          <p className="text-2xl font-black text-red-500 uppercase tracking-widest drop-shadow-md">
+                          <p className="text-xl sm:text-2xl font-black text-green-500 uppercase tracking-widest drop-shadow-md">
                             {translation}
                           </p>
                         )}
                       </div>
 
                       {/* Middle Section - Square Media */}
-                      <div className="relative w-full aspect-square bg-elevated overflow-hidden border-y border-white/5 shadow-2xl">
+                      <div className="relative w-[85%] mx-auto aspect-square bg-elevated overflow-hidden rounded-3xl border border-white/10 shadow-2xl mt-2 mb-4 shrink-0">
                         {words[currentIndex]?.image_url?.match(/\.(mp4|webm|m3u8)/i) ? (
                           <video src={words[currentIndex]?.image_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
                         ) : (
@@ -170,13 +170,13 @@ export default function Reels() {
                       </div>
 
                       {/* Bottom Section - Example */}
-                      <div className="flex-1 p-6 flex flex-col justify-center bg-gradient-to-t from-black via-black/40 to-transparent">
-                        <div className="max-w-md mx-auto w-full space-y-4">
+                      <div className="flex-1 px-4 pb-6 flex flex-col justify-center bg-gradient-to-t from-black via-black/40 to-transparent overflow-y-auto">
+                        <div className="max-w-[80%] mr-auto ml-4 w-full space-y-3">
                           {example && (
-                            <div className="bg-white/5 backdrop-blur-xl p-6 rounded-[2.5rem] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-                              <p className="text-xl font-semibold text-white/90 italic leading-relaxed text-center">"{example}"</p>
+                            <div className="bg-white/5 backdrop-blur-xl p-4 rounded-3xl border border-white/10 shadow-2xl">
+                              <p className="text-[16px] sm:text-[17px] font-semibold text-white italic leading-snug">"{example}"</p>
                               {example_translation && (
-                                <p className="text-base text-green-400 font-bold text-center border-t border-white/10 mt-4 pt-4 tracking-tight">
+                                <p className="text-[14px] sm:text-[15px] text-white/90 font-medium border-t border-white/10 mt-3 pt-3">
                                   {example_translation}
                                 </p>
                               )}
@@ -189,22 +189,22 @@ export default function Reels() {
                 })()}
 
                 {/* Floating Actions */}
-                <div className="absolute right-4 bottom-10 flex flex-col gap-6 items-center z-20">
-                  <button onClick={() => handleAction(true)} className="group flex flex-col items-center gap-1.5 transition-all">
-                    <div className="p-4.5 rounded-full bg-green-500/20 backdrop-blur-2xl border border-green-500/40 text-green-500 shadow-[0_0_20px_rgba(34,197,94,0.2)] active:scale-90 transition-transform">
-                      <Heart className="w-8 h-8 fill-current" />
+                <div className="absolute right-3 bottom-8 flex flex-col gap-4 items-center z-20">
+                  <button onClick={() => handleAction(true)} className="group flex flex-col items-center gap-1 transition-all">
+                    <div className="p-3.5 rounded-full bg-green-500/20 backdrop-blur-2xl border border-green-500/40 text-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)] active:scale-90 transition-transform">
+                      <Heart className="w-6 h-6 fill-current" />
                     </div>
-                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">{t('iknow')}</span>
+                    <span className="text-[9px] font-bold text-white/50 uppercase tracking-wider">{t('iknow')}</span>
                   </button>
-                  <button onClick={() => handleAction(false)} className="group flex flex-col items-center gap-1.5 transition-all">
-                    <div className="p-4.5 rounded-full bg-red-500/20 backdrop-blur-2xl border border-red-500/40 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.2)] active:scale-90 transition-transform">
-                      <X className="w-8 h-8 stroke-[3]" />
+                  <button onClick={() => handleAction(false)} className="group flex flex-col items-center gap-1 transition-all">
+                    <div className="p-3.5 rounded-full bg-red-500/20 backdrop-blur-2xl border border-red-500/40 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)] active:scale-90 transition-transform">
+                      <X className="w-6 h-6 stroke-[3]" />
                     </div>
-                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">{t('idontknow')}</span>
+                    <span className="text-[9px] font-bold text-white/50 uppercase tracking-wider">{t('idontknow')}</span>
                   </button>
-                  <button onClick={handleUndo} disabled={history.length === 0} className="group flex flex-col items-center gap-1.5 disabled:opacity-20 transition-all pt-2">
-                    <div className="p-4 rounded-full bg-white/10 backdrop-blur-2xl border border-white/10 text-white active:scale-90 transition-transform shadow-lg">
-                      <Undo2 className="w-7 h-7" />
+                  <button onClick={handleUndo} disabled={history.length === 0} className="group flex flex-col items-center gap-1 disabled:opacity-20 transition-all pt-1">
+                    <div className="p-3 rounded-full bg-white/10 backdrop-blur-2xl border border-white/10 text-white active:scale-90 transition-transform shadow-lg">
+                      <Undo2 className="w-5 h-5" />
                     </div>
                   </button>
                 </div>
