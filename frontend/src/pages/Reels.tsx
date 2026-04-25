@@ -169,8 +169,27 @@ export default function Reels() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                       </div>
 
+                      {/* Action Buttons (Horizontal) */}
+                      <div className="w-full flex flex-row items-center justify-center gap-8 z-20 shrink-0 py-2">
+                        <button onClick={handleUndo} disabled={history.length === 0} className="group flex flex-col items-center gap-1.5 disabled:opacity-20 transition-all">
+                          <div className="p-3 rounded-full bg-white/10 backdrop-blur-2xl border border-white/10 text-white active:scale-90 transition-transform shadow-lg">
+                            <Undo2 className="w-6 h-6" />
+                          </div>
+                        </button>
+                        <button onClick={() => handleAction(false)} className="group flex flex-col items-center gap-1.5 transition-all">
+                          <div className="p-4 rounded-full bg-red-500/20 backdrop-blur-2xl border border-red-500/40 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)] active:scale-90 transition-transform">
+                            <X className="w-8 h-8 stroke-[3]" />
+                          </div>
+                        </button>
+                        <button onClick={() => handleAction(true)} className="group flex flex-col items-center gap-1.5 transition-all">
+                          <div className="p-4 rounded-full bg-green-500/20 backdrop-blur-2xl border border-green-500/40 text-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)] active:scale-90 transition-transform">
+                            <Heart className="w-8 h-8 fill-current" />
+                          </div>
+                        </button>
+                      </div>
+
                       {/* Bottom Section - Example */}
-                      <div className="flex-1 px-4 pb-8 flex flex-col justify-center bg-gradient-to-t from-black via-black/60 to-transparent overflow-y-auto">
+                      <div className="flex-1 px-4 pb-8 flex flex-col justify-start bg-gradient-to-t from-black via-black/60 to-transparent overflow-y-auto">
                         <div className="w-full max-w-lg mx-auto text-center space-y-3">
                           {example && (
                             <div className="p-2">
@@ -208,27 +227,6 @@ export default function Reels() {
                     </>
                   );
                 })()}
-
-                {/* Floating Actions */}
-                <div className="absolute right-3 bottom-[18%] flex flex-col gap-4 items-center z-20">
-                  <button onClick={() => handleAction(true)} className="group flex flex-col items-center gap-1 transition-all">
-                    <div className="p-3.5 rounded-full bg-green-500/20 backdrop-blur-2xl border border-green-500/40 text-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)] active:scale-90 transition-transform">
-                      <Heart className="w-6 h-6 fill-current" />
-                    </div>
-                    <span className="text-[9px] font-bold text-white/50 uppercase tracking-wider">{t('iknow')}</span>
-                  </button>
-                  <button onClick={() => handleAction(false)} className="group flex flex-col items-center gap-1 transition-all">
-                    <div className="p-3.5 rounded-full bg-red-500/20 backdrop-blur-2xl border border-red-500/40 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)] active:scale-90 transition-transform">
-                      <X className="w-6 h-6 stroke-[3]" />
-                    </div>
-                    <span className="text-[9px] font-bold text-white/50 uppercase tracking-wider">{t('idontknow')}</span>
-                  </button>
-                  <button onClick={handleUndo} disabled={history.length === 0} className="group flex flex-col items-center gap-1 disabled:opacity-20 transition-all pt-1">
-                    <div className="p-3 rounded-full bg-white/10 backdrop-blur-2xl border border-white/10 text-white active:scale-90 transition-transform shadow-lg">
-                      <Undo2 className="w-5 h-5" />
-                    </div>
-                  </button>
-                </div>
               </div>
             </div>
           )}
